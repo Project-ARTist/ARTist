@@ -1,0 +1,52 @@
+/*
+ * Copyright (C) 2016 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef ART_MODULES_GENERIC_INJECTIONS_H_
+#define ART_MODULES_GENERIC_INJECTIONS_H_
+
+#include <memory>
+#include "optimizing/artist/env/codelib.h"
+#include "optimizing/artist/injection/injection.h"
+
+namespace art {
+
+class HInjections {
+ public:
+  static std::vector<Injection> buildInjections() {
+    std::vector<Injection> injections;
+    // TODO Bug: Using Injection with multiple targets that have the same InjectionTarget
+    //           Leads to duplicate injections
+    //
+    // **Define injections here**
+    //
+    // => Generate your own codelib.h/.cc and check available methods (signatures) for injection.
+    //
+    // <Injections>
+    // Trace Logging in all onCreate() methods.
+    // Parameter and package-/class-names get ignored
+    Injection trace_logging_specific(
+        CodeLib::_M_SAARLAND_CISPA_ARTIST_CODELIB_CODELIB__TRACELOG____V,
+        std::vector<std::shared_ptr<Parameter>>(),  // No params
+        Target(".onCreate(", InjectionTarget::METHOD_START));
+    injections.push_back(trace_logging_specific);
+    // </Injections>
+    return injections;
+  }
+};
+
+}  // namespace art
+
+#endif  // ART_MODULES_GENERIC_INJECTIONS_H_
