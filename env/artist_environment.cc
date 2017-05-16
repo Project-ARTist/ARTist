@@ -35,7 +35,8 @@ ArtistEnvironment::ArtistEnvironment()
     , injections()
     , dex_name_number_map()
     , CODE_LIB_DEX_FILE_NAME()
-    , dex_files_apk() {}
+    , dex_files_apk()
+    , code_lib_available(true) {}
 
 ArtistEnvironment::ArtistEnvironment(const size_t method_count)
     : method_vtable_indexes(method_count)
@@ -83,6 +84,10 @@ bool ArtistEnvironment::IsCodeLib(const DexFile& dex_file) {
   } else {
     return false;
   }
+}
+
+bool ArtistEnvironment::IsCodeLibAvailable() {
+  return this->code_lib_available;
 }
 
 size_t ArtistEnvironment::GetDexFileCountApk() const {

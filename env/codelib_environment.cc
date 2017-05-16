@@ -121,7 +121,10 @@ void CodeLibEnvironment::SetupEnvironment(const std::vector<const DexFile*>& dex
     if (codelib_type_id == ArtUtils::NO_TYPE_ID_FOUND) {
       ArtUtils::DumpTypes(dex_file);
       VLOG(artist) << "SetupEnvironment() Could not find Codelib DexFile: " << dex_name << " index: " << dex_index;
-      CHECK(false);
+      VLOG(artist) << "CodeLib is not available";
+      this->code_lib_available = false;
+      UnlockSetup();
+      return;
     }
     const uint32_t code_lib_type_idx = dex_file.GetIndexForTypeId(dex_file.GetTypeId(codelib_type_id));
     VLOG(artistd) << "SetupEnvironment(): ->SetTypeIdxCodeLib()";

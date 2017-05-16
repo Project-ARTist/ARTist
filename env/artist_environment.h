@@ -87,6 +87,8 @@ class ArtistEnvironment {
 
   virtual bool IsCodeLib(const DexFile& dex_file);
 
+  virtual bool IsCodeLibAvailable();
+
   void LockSetup();
   void UnlockSetup();
 
@@ -137,6 +139,8 @@ class ArtistEnvironment {
 
   size_t dex_file_count_apk;
   size_t dex_file_count_classpath;
+
+  bool code_lib_available;
 };
 
 }  // namespace art
