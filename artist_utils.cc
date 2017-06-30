@@ -226,13 +226,13 @@ HInstruction* ArtUtils::InjectCodeLib(const HInstruction* instruction_cursor,
 
 #ifdef BUILD_MARSHMALLOW
 
-  HLoadClass* loadClassTaintLib = new(allocator) HLoadClass(
+  HLoadClass* loadClassCodeLib = new(allocator) HLoadClass(
   codeLib.GetTypeIdxCodeLib(dex_file_name)
   , false
   , 0);
 
 #else
-  HLoadClass* loadClassTaintLib = new(allocator) HLoadClass(
+  HLoadClass* loadClassCodeLib = new(allocator) HLoadClass(
       graph->GetCurrentMethod(),
       codeLib.GetTypeIdxCodeLib(dex_file_name),
       graph->GetDexFile(),
@@ -242,15 +242,15 @@ HInstruction* ArtUtils::InjectCodeLib(const HInstruction* instruction_cursor,
       false);  // must be false, crashes otherwise
 
 #endif
-  injectionBlock->InsertInstructionBefore(loadClassTaintLib, injection_cursor);
+  injectionBlock->InsertInstructionBefore(loadClassCodeLib, injection_cursor);
 
-  HClinitCheck* clInitCheckTaintlib = new(allocator) HClinitCheck(loadClassTaintLib, 0);
-  injectionBlock->InsertInstructionAfter(clInitCheckTaintlib, loadClassTaintLib);
-  HInstruction* return_cursor = clInitCheckTaintlib;
+  HClinitCheck* clInitCheckCodelib = new(allocator) HClinitCheck(loadClassCodeLib, 0);
+  injectionBlock->InsertInstructionAfter(clInitCheckCodelib, loadClassCodeLib);
+  HInstruction* return_cursor = clInitCheckCodelib;
 
   #ifdef BUILD_MARSHMALLOW
     const bool IS_VOLATILE = false;
-    HStaticFieldGet* getFieldInstance = new(allocator) HStaticFieldGet(clInitCheckTaintlib,
+    HStaticFieldGet* getFieldInstance = new(allocator) HStaticFieldGet(clInitCheckCodelib,
                                                                        Primitive::Type::kPrimNot,
                                                                        codeLib.GetInstanceField(codeLib.GetCodeLibDexFileName()),
                                                                        IS_VOLATILE);
@@ -269,7 +269,7 @@ HInstruction* ArtUtils::InjectCodeLib(const HInstruction* instruction_cursor,
             class_linker->FindDexCache(
                 Thread::Current(), *codeLib.GetCodeLibDexFile(), false)));
 
-    HStaticFieldGet* getFieldInstance = new(allocator) HStaticFieldGet(clInitCheckTaintlib,
+    HStaticFieldGet* getFieldInstance = new(allocator) HStaticFieldGet(clInitCheckCodelib,
                                                                        Primitive::Type::kPrimNot,
                                                                        codeLib.GetInstanceField(code_lib_dexname),
                                                                        IS_VOLATILE,
@@ -281,7 +281,7 @@ HInstruction* ArtUtils::InjectCodeLib(const HInstruction* instruction_cursor,
   #endif
     VLOG(artistd) << "ArtUtils::InjectCodeLib getFieldInstance: " << getFieldInstance
                   << " Needs Env: " << getFieldInstance->GetEnvironment();
-    injectionBlock->InsertInstructionAfter(getFieldInstance, clInitCheckTaintlib);
+    injectionBlock->InsertInstructionAfter(getFieldInstance, clInitCheckCodelib);
 
     HNullCheck* nullCheck = new(allocator) HNullCheck(getFieldInstance, 0);
     injectionBlock->InsertInstructionAfter(nullCheck, getFieldInstance);

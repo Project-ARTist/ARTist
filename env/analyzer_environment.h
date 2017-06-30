@@ -72,7 +72,7 @@ class AnalyzerEnvironment : public ArtistEnvironment {
   void SetInstanceFieldIdx(const std::string& dex_name, const uint32_t  instance_field_idx);
 
   uint32_t GetTypeIdxCodeLib(const std::string& dex_name) const;
-  void SetTypeIdxCodeLib(const std::string& dex_name, const uint32_t type_idx_taintLib);
+  void SetTypeIdxCodeLib(const std::string& dex_name, const uint32_t type_idx_codelib);
 
   uint32_t GetClassDefIdxCodeLib(const std::string& dex_name) const;
   void SetClassDefIdxCodeLib(const std::string& dex_name, const uint32_t type_idx_codelib);

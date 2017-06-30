@@ -34,9 +34,7 @@ namespace art {
 class MemberOffset;
 class CompilerDriver;
 
-/** TaintLibEnvironment Singleton, for easy access and existance throughout all RUN()s
- *  No Multidex Support available.
- */
+/** CodeLibEnvironment Singleton, for easy access and existence throughout all RUN()s */
 class CodeLibEnvironment : public ArtistEnvironment {
  public:
   static CodeLibEnvironment& GetInstance();

@@ -101,8 +101,8 @@ uint32_t AnalyzerEnvironment::GetTypeIdxCodeLib(const std::string& dex_name) con
   return this->type_idx_code_lib.at(dex_name);
 }
 
-void AnalyzerEnvironment::SetTypeIdxCodeLib(const std::string& dex_name, const uint32_t type_idx_taintLib) {
-  this->type_idx_code_lib.emplace(dex_name, type_idx_taintLib);
+void AnalyzerEnvironment::SetTypeIdxCodeLib(const std::string& dex_name, const uint32_t type_idx_codelib) {
+  this->type_idx_code_lib.emplace(dex_name, type_idx_codelib);
 }
 
 uint32_t AnalyzerEnvironment::GetClassDefIdxCodeLib(const std::string& dex_name) const {
