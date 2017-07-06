@@ -23,7 +23,7 @@
 #include "runtime.h"
 
 #include "logtimization.h"
-#include "optimizing/artist/env/analyzer_environment.h"
+#include "optimizing/artist/env/codelib_environment.h"
 
 using std::string;
 using std::vector;
@@ -54,7 +54,7 @@ HLogtimization::~HLogtimization() { }
 
 void HLogtimization::SetupModule() {
   const std::string& dex_name = ArtUtils::GetDexFileName(graph_);
-  AnalyzerEnvironment& env = AnalyzerEnvironment::GetInstance();
+  CodeLibEnvironment& env = CodeLibEnvironment::GetInstance();
   const std::vector<const DexFile*> dex_files;
   env.SetupEnvironment(dex_files, dex_name, graph_->GetDexFile(), nullptr, nullptr);
 }

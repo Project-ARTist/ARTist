@@ -64,13 +64,6 @@ class ArtistEnvironment {
   virtual uint32_t GetClassDefIdxCodeLib(const std::string& dex_name) const = 0;
   virtual void SetClassDefIdxCodeLib(const std::string& dex_name, const uint32_t type_idx_code_lib) = 0;
 
-  virtual void AddInjection(const Injection& injection) = 0;
-  virtual void SetInjections(const std::vector<Injection>& injection_list) = 0;
-  virtual const std::vector<Injection>& GetInjections() = 0;
-
-  virtual const std::unordered_map<std::string, std::vector<Injection>>& GetInjectionTable() = 0;
-  virtual bool EmplaceTableEntry(const std::string& callback_key, const Injection& single_injection) = 0;
-
 
   virtual void SetupEnvironment(const std::vector<const DexFile*>& dex_files,
                                 const std::string& dex_name,
@@ -120,11 +113,6 @@ class ArtistEnvironment {
   std::unordered_map<std::string, uint32_t> type_idx_code_lib;
   // Class Def Index of the CodeLib class itself
   std::unordered_map<std::string, uint32_t> class_def_idx_code_lib;
-
-  std::vector<Injection> injections;
-
-  // Use @see VisitorKeys
-  std::unordered_map<std::string, std::vector<Injection>> injection_table;
 
   std::atomic_flag* env_setup_ready;
   std::unordered_map<std::string, uint32_t> dex_name_number_map;

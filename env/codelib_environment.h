@@ -85,6 +85,12 @@ class CodeLibEnvironment : public ArtistEnvironment {
 
   void operator=(CodeLibEnvironment const&) = delete;
 
+ protected:
+  std::vector<Injection> injections;
+
+  // Use @see VisitorKeys
+  std::unordered_map<std::string, std::vector<Injection>> injection_table;
+
  private:
   CodeLibEnvironment();
 
