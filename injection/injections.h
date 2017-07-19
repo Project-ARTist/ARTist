@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef ART_MODULES_GENERIC_INJECTIONS_H_
-#define ART_MODULES_GENERIC_INJECTIONS_H_
+#ifndef ART_INJECTION_INJECTIONS_H_
+#define ART_INJECTION_INJECTIONS_H_
 
 #include <memory>
 #include "optimizing/artist/injection/short.h"
@@ -36,6 +36,8 @@
 #include "optimizing/artist/injection/injection.h"
 
 namespace art {
+
+// TODO this is tightly coupled with modules! Generalize and move specific part to the actual modules
 
 class HInjections {
  public:
@@ -144,4 +146,4 @@ class HInjections {
 
 }  // namespace art
 
-#endif  // ART_MODULES_GENERIC_INJECTIONS_H_
+#endif  // ART_INJECTION_INJECTIONS_H_

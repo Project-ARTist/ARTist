@@ -40,10 +40,10 @@ LIBART_COMPILER_SRC_FILES += \
     optimizing/artist/injection/permissions.cc \
     optimizing/artist/injection/target.cc \
     optimizing/artist/injection/visitor_keys.cc \
+    optimizing/artist/injection/universal_artist.cc \
     optimizing/artist/method_info.cc \
     optimizing/artist/method_info_factory.cc \
     optimizing/artist/param_finder.cc \
     optimizing/artist/modules/analyzer/logtimization.cc \
-    optimizing/artist/modules/generic/universal_artist.cc \
     optimizing/artist/modules/method-tracing/trace_artist.cc \
     optimizing/artist/verbose_printer.cc

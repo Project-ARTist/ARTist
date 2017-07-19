@@ -27,7 +27,6 @@
 #include "blacklist.h"
 #include "injection/injection_visitor.h"
 #include "env/java_env.h"
-#include "env/codelib_environment.h"
 #include "class_linker.h"
 #include "class_linker-inl.h"
 #include "method_info_factory.h"
@@ -40,7 +39,7 @@
 #include "injection/integer.h"
 #include "injection/float.h"
 
-#include "modules/generic/injections.h"
+#include "optimizing/artist/injection/injections.h"
 
 using std::string;
 using std::vector;
@@ -54,7 +53,6 @@ uint32_t HArtist::method_counter = 0;
 
 HArtist::HArtist(HGraph* graph,
                  const DexCompilationUnit& _dex_compilation_unit,
-                 CompilerDriver* _compiler_driver,
 #ifdef BUILD_MARSHMALLOW
                  bool is_in_ssa_form,
 #endif
@@ -67,7 +65,6 @@ HArtist::HArtist(HGraph* graph,
                     pass_name, stats)
     , code_lib(nullptr)
     , dex_compilation_unit(_dex_compilation_unit)
-    , compiler_driver(_compiler_driver)
     , methodInfo(MethodInfoFactory::Obtain(graph, _dex_compilation_unit)) {
   ArtistLog::SetupArtistLogging();
   const string& VERSION = "00109";
@@ -117,27 +114,20 @@ void HArtist::Run() {
   VLOG(artistd) << "Artist #" << method_counter << ": " << method_signature<< " (" << dexFileName << ")";
 
   Setup();
-
   RunModule();
 }
 
 void HArtist::Setup() {
+  VLOG(artist) << "HArtist::Setup()" << std::endl;
+
   SetupModule();
 
-  static std::atomic_flag setup_ready = ATOMIC_FLAG_INIT;
-
-  // Checking Once
-  if (setup_ready.test_and_set()) {
-    return;
-  }
-  VLOG(artist) << "HArtist::Setup()" << std::endl;
   VLOG(artist) << "HArtist::Setup() Done" << std::endl;
 }
 
 
 HInstruction* HArtist::GetCodeLib(HInstruction* instruction_cursor) {
   if (this->code_lib == nullptr) {
-    // VLOG(artistd) << "GetCodeLib: injecting code lib after last instruction of first block: " << graph_->GetEntryBlock()->GetLastInstruction()->DebugName();
     if (instruction_cursor == nullptr) {
       this->code_lib = ArtUtils::InjectCodeLib(graph_->GetEntryBlock()->GetLastInstruction());
     } else {
@@ -165,10 +155,6 @@ void HArtist::RunModule() {
 
 const DexCompilationUnit& HArtist::GetDexCompilationUnit() {
   return dex_compilation_unit;
-}
-
-CompilerDriver* HArtist::GetCompilerDriver() {
-  return compiler_driver;
 }
 
 }  // namespace art

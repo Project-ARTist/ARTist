@@ -32,7 +32,6 @@
 #include "codelib_environment.h"
 #include "codelib.h"
 
-#include "optimizing/artist/injection/visitor_keys.h"
 #include "optimizing/artist/artist_log.h"
 
 namespace art {
@@ -49,7 +48,6 @@ CodeLibEnvironment::~CodeLibEnvironment() {
 }
 
 void CodeLibEnvironment::PreInitializeEnvironmentCodeLib(jobject class_loader,
-                                                         CompilerDriver* compiler_driver,
                                                          const std::vector<const DexFile *>& dex_files) {
   VLOG(artistd) << "PreInitializeEnvironmentCodeLib()";
 
@@ -58,7 +56,7 @@ void CodeLibEnvironment::PreInitializeEnvironmentCodeLib(jobject class_loader,
   CodeLibEnvironment& env = CodeLibEnvironment::GetInstance();
   for (auto && dexFile : dex_files) {
     VLOG(artistd) << "PreInitializeEnvironmentCodeLib() DexFile: " << dexFile->GetLocation();
-    env.SetupEnvironment(dex_files, dexFile->GetLocation(), *dexFile, compiler_driver, class_loader);
+    env.SetupEnvironment(dex_files, dexFile->GetLocation(), *dexFile, class_loader);
     VLOG(artistd) << "PreInitializeEnvironmentCodeLib() DexFile: " << dexFile->GetLocation() << " DONE";
     VLOG(artistd) << "PreInitializeEnvironmentCodeLib() CodeLibDexFile : " << env.GetCodeLibDexFileName();
     if (dexFile->GetLocation().compare(env.GetCodeLibDexFileName()) == 0) {
@@ -77,7 +75,6 @@ void CodeLibEnvironment::PreInitializeEnvironmentCodeLib(jobject class_loader,
 void CodeLibEnvironment::SetupEnvironment(const std::vector<const DexFile*>& dex_files,
                                           const std::string& dex_name,
                                           const DexFile& dex_file,
-                                          CompilerDriver* compiler_driver ATTRIBUTE_UNUSED,
                                           jobject jclass_loader) {
   // Checking Once
   LockSetup();
@@ -311,63 +308,6 @@ CodeLibEnvironment::CodeLibEnvironment()
     : ArtistEnvironment()
     , JAVA_LIB_METHODS(CodeLib::GetMethods()) { }
 
-/** Setup the configured injections.
- *
- * Injections are defines in HInjections::buildInjections()
- *
- * @param injection_list
- */
-void CodeLibEnvironment::SetupInjections(std::vector<Injection>& injection_list) {
-  VLOG(artistd) << "CodeLibEnvironment::SetupInjections()";
-  this->injections = injection_list;
-
-  VLOG(artistd) << "CodeLibEnvironment::SetupInjections() InjectionCount Total #" << this->injections.size();
-  int32_t targetCounter = 0;
-  for (auto const & injection : this->injections) {
-    VLOG(artistd) << "CodeLibEnvironment::SetupInjections() Method:      " << injection.GetSignature();
-    std::vector<Target> injection_targets = injection.GetInjectionTargets();
-
-    VLOG(artistd) << "CodeLibEnvironment::SetupInjections() Local TargetCount  #" << injection_targets.size();
-    // TODO Bug: Using Injection with multiple targets that have the same InjectionTarget
-    //           Leads to duplicate injections
-    for (auto const & target : injection_targets) {
-      switch ((int32_t)target.GetTargetType()) {
-        case InjectionTarget::METHOD_CALL_BEFORE:
-          ++targetCounter;
-          this->EmplaceTableEntry(VisitorKeys::H_INVOKE, injection);
-          this->EmplaceTableEntry(VisitorKeys::H_INVOKE_INTERFACE, injection);
-          this->EmplaceTableEntry(VisitorKeys::H_INVOKE_STATIC_OR_DIRECT, injection);
-          this->EmplaceTableEntry(VisitorKeys::H_INVOKE_VIRTUAL, injection);
-          break;
-        case InjectionTarget::METHOD_CALL_AFTER:
-          ++targetCounter;
-          this->EmplaceTableEntry(VisitorKeys::H_INVOKE, injection);
-          this->EmplaceTableEntry(VisitorKeys::H_INVOKE_INTERFACE, injection);
-          this->EmplaceTableEntry(VisitorKeys::H_INVOKE_STATIC_OR_DIRECT, injection);
-          this->EmplaceTableEntry(VisitorKeys::H_INVOKE_VIRTUAL, injection);
-          break;
-        case InjectionTarget::METHOD_START:
-          ++targetCounter;
-          this->EmplaceTableEntry(VisitorKeys::H_RETURN, injection);
-          this->EmplaceTableEntry(VisitorKeys::H_RETURN_VOID, injection);
-          break;
-        case InjectionTarget::METHOD_END:
-          ++targetCounter;
-          this->EmplaceTableEntry(VisitorKeys::H_RETURN, injection);
-          this->EmplaceTableEntry(VisitorKeys::H_RETURN_VOID, injection);
-          break;
-        case InjectionTarget::NO_INJECTION:
-        default:
-          VLOG(artistd) << "Nothing to inject";
-          continue;
-      }
-    }
-  }
-  VLOG(artistd) << "CodeLibEnvironment::SetupInjections() InjectionCount Total #" << this->injections.size();
-  VLOG(artistd) << "CodeLibEnvironment::SetupInjections() TargetCount Total    #" << targetCounter;
-  VLOG(artistd) << "CodeLibEnvironment::SetupInjections() DONE";
-}
-
 const std::unordered_set<std::string>& CodeLibEnvironment::GetMethods() const {
   return this->JAVA_LIB_METHODS;
 }
@@ -433,56 +373,4 @@ void CodeLibEnvironment::SetMethodDexfileIdx(const std::string& dex_name,
                                              const uint32_t method_idx) {
   this->method_dexfile_idx[dex_name][method_signature] = method_idx;
 }
-
-const std::vector<Injection>& CodeLibEnvironment::GetInjections() {
-  VLOG(artistd) << "CodeLibEnvironment::GetInjections()";
-  return this->injections;
-}
-
-void CodeLibEnvironment::AddInjection(const Injection& injection) {
-  this->injections.push_back(injection);
-}
-
-void CodeLibEnvironment::SetInjections(const std::vector<Injection>& injection_list) {
-  this->injections = injection_list;
-}
-
-const std::unordered_map<std::string, std::vector<Injection>>& CodeLibEnvironment::GetInjectionTable() {
-  return this->injection_table;
-}
-
-const std::vector<Injection> CodeLibEnvironment::GetInjectionTableEntry(const std::string& callback_key) {
-  VLOG(artistd) << "CodeLibEnvironment::GetInjectionTableEntry()";
-  std::unordered_map<std::string, std::vector<Injection>>::const_iterator found_item =
-      this->injection_table.find(callback_key);
-
-  if (found_item == this->injection_table.end()) {
-    std::vector<Injection> localInjections = std::vector<Injection>();
-
-    VLOG(artistd) << "CodeLibEnvironment::GetInjectionTableEntry() DONE: " << localInjections.size();
-    return localInjections;
-  } else {
-    std::vector<Injection> localInjections = this->injection_table.at(callback_key);
-
-    VLOG(artistd) << "CodeLibEnvironment::GetInjectionTableEntry() DONE: " << localInjections.size();
-    return localInjections;
-  }
-}
-
-bool CodeLibEnvironment::EmplaceTableEntry(const std::string& callback_key,
-                                            const Injection& single_injection) {
-  VLOG(artistd) << "CodeLibEnvironment::EmplaceTableEntry()";
-
-  std::vector<Injection> new_injections = GetInjectionTableEntry(callback_key);
-  VLOG(artistd) << "CodeLibEnvironment::EmplaceTableEntry() " << callback_key
-                << " Table Contained    # " << new_injections.size();
-  new_injections.push_back(single_injection);
-  VLOG(artistd) << "CodeLibEnvironment::EmplaceTableEntry() " << callback_key
-                << " Table Contains Now # " << new_injections.size();
-  this->injection_table.erase(callback_key);
-  this->injection_table.emplace(callback_key, new_injections);
-  VLOG(artistd) << "CodeLibEnvironment::EmplaceTableEntry() DONE";
-  return true;
-}
-
 }  // namespace art

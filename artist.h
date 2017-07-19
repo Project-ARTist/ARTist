@@ -48,7 +48,6 @@ namespace art {
   public:
     HArtist(HGraph *graph,
             const DexCompilationUnit& _dex_compilation_unit,
-            CompilerDriver* _compiler_driver,
 #ifdef BUILD_MARSHMALLOW
             bool is_in_ssa_form = true,
 #endif
@@ -64,21 +63,17 @@ namespace art {
     void Run() OVERRIDE;
 
     const DexCompilationUnit& GetDexCompilationUnit();
-    CompilerDriver* GetCompilerDriver();
 
    private:  // Member Vars
     HInstruction* code_lib;
 
   protected:  // Member Vars
     const DexCompilationUnit& dex_compilation_unit;
-    CompilerDriver* compiler_driver;
     const MethodInfo* methodInfo;
 
     static uint32_t method_counter;
 
   protected:  // Member Functions
-    void SetupEnvironment();
-
     void LogVersionOnce(const string& VERSION) const;
     void Setup();
 

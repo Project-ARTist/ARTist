@@ -23,24 +23,22 @@
 #ifndef ART_MODULES_METHOD_TRACING_TRACE_ARTIST_H_
 #define ART_MODULES_METHOD_TRACING_TRACE_ARTIST_H_
 
-#include "optimizing/artist/artist.h"
+#include "optimizing/artist/injection/universal_artist.h"
 
 namespace art {
 
-class HTraceArtist : public HArtist {
+class HTraceArtist : public HUniversalArtist {
  public:
   HTraceArtist(
       HGraph* graph,
       const DexCompilationUnit& _dex_compilation_unit,
-      CompilerDriver* _compiler_driver,
 #ifdef BUILD_MARSHMALLOW
       bool is_in_ssa_form = true,
 #endif
       const char* pass_name = "TraceArtist"
       , OptimizingCompilerStats* stats = nullptr)
-      : HArtist(graph
+      : HUniversalArtist(graph
       , _dex_compilation_unit
-      , _compiler_driver
 #ifdef BUILD_MARSHMALLOW
       , is_in_ssa_form
 #endif
@@ -50,17 +48,6 @@ class HTraceArtist : public HArtist {
   }
 
   void SetupModule() OVERRIDE;
-  void RunModule() OVERRIDE;
-
-//  void RunTaskTest() const;
-
- protected:
-  // helper
-  void SetupInjections(std::vector<Injection>& injection_list);
-  void SetupEnvironment(const std::string& dex_name);
-
- private:
-  void printGraph(const std::string& message) const;
 };
 
 }  // namespace art

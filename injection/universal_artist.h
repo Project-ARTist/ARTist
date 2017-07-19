@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef ART_MODULES_GENERIC_UNIVERSAL_ARTIST_H_
-#define ART_MODULES_GENERIC_UNIVERSAL_ARTIST_H_
+#ifndef ART_INJECTION_UNIVERSAL_ARTIST_H_
+#define ART_INJECTION_UNIVERSAL_ARTIST_H_
 
 #include "optimizing/artist/artist.h"
 
@@ -32,7 +32,6 @@ class HUniversalArtist : public HArtist {
   HUniversalArtist(
     HGraph* graph,
     const DexCompilationUnit& _dex_compilation_unit,
-    CompilerDriver* _compiler_driver,
 #ifdef BUILD_MARSHMALLOW
     bool is_in_ssa_form = true,
 #endif
@@ -40,7 +39,6 @@ class HUniversalArtist : public HArtist {
     , OptimizingCompilerStats* stats = nullptr)
     : HArtist(graph
       , _dex_compilation_unit
-      , _compiler_driver
 #ifdef BUILD_MARSHMALLOW
         , is_in_ssa_form
 #endif
@@ -49,20 +47,30 @@ class HUniversalArtist : public HArtist {
     // Nothing
   }
 
+  // module interface
   void SetupModule() OVERRIDE;
   void RunModule() OVERRIDE;
 
-//  void RunTaskTest() const;
+  // injection-specifics
+  void AddInjection(const Injection& injection);
+  void SetInjections(const std::vector<Injection>& injection_list);
+  const std::vector<Injection>& GetInjections();
+  const std::unordered_map<std::string, std::vector<Injection>>& GetInjectionTable();
+  const std::vector<Injection> GetInjectionTableEntry(const std::string& callback_key);
+  bool EmplaceTableEntry(const std::string& callback_key, const Injection& single_injection);
 
  protected:
   // helper
   void SetupInjections(std::vector<Injection>& injection_list);
   void SetupEnvironment(const std::string& dex_name);
 
- private:
-  void printGraph(const std::string& message) const;
+  // injection-specifics
+  std::vector<Injection> injections;
+
+  // Use @see VisitorKeys
+  std::unordered_map<std::string, std::vector<Injection>> injection_table;
 };
 
 }  // namespace art
 
-#endif  // ART_MODULES_GENERIC_UNIVERSAL_ARTIST_H_
+#endif  // ART_INJECTION_UNIVERSAL_ARTIST_H_

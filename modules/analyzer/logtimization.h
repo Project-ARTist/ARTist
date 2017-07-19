@@ -42,7 +42,6 @@ class HLogtimization : public HArtist {
  public:
   HLogtimization(HGraph* graph,
                  const DexCompilationUnit& _dex_compilation_unit,
-                 CompilerDriver* _compiler_driver,
 #ifdef BUILD_MARSHMALLOW
                  bool is_in_ssa_form = true,
 #endif
@@ -53,11 +52,6 @@ class HLogtimization : public HArtist {
 
   void SetupModule() OVERRIDE;
   void RunModule() OVERRIDE;
-
- private:  // Member Vars
-//  const DexCompilationUnit& dex_comp_unit;
-
- protected:  // Member Functions
 };
 
 }  // namespace art

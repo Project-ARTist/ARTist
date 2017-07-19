@@ -33,7 +33,6 @@ namespace art {
 
 HLogtimization::HLogtimization(HGraph* graph,
                                const DexCompilationUnit& _dex_compilation_unit,
-                               CompilerDriver* _compiler_driver,
 #ifdef BUILD_MARSHMALLOW
                                bool is_in_ssa_form,
 #endif
@@ -41,7 +40,6 @@ HLogtimization::HLogtimization(HGraph* graph,
                                OptimizingCompilerStats* stats)
       : HArtist(graph
       , _dex_compilation_unit
-      , _compiler_driver
 #ifdef BUILD_MARSHMALLOW
       , is_in_ssa_form
 #endif
@@ -56,7 +54,7 @@ void HLogtimization::SetupModule() {
   const std::string& dex_name = ArtUtils::GetDexFileName(graph_);
   CodeLibEnvironment& env = CodeLibEnvironment::GetInstance();
   const std::vector<const DexFile*> dex_files;
-  env.SetupEnvironment(dex_files, dex_name, graph_->GetDexFile(), nullptr, nullptr);
+  env.SetupEnvironment(dex_files, dex_name, graph_->GetDexFile(), nullptr);
 }
 
 void HLogtimization::RunModule() {

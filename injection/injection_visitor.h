@@ -23,6 +23,7 @@
 #ifndef ART_INJECTION_INJECTION_VISITOR_H_
 #define ART_INJECTION_INJECTION_VISITOR_H_
 
+#include "universal_artist.h"
 #include "injection.h"
 #include "optimizing/artist/artist_method_visitor.h"
 #include "optimizing/artist/env/codelib_environment.h"
@@ -31,12 +32,8 @@ namespace art {
 
 class HInjectionVisitor : public HArtistMethodVisitor {
  private:
-  HArtist* artist;
+  HUniversalArtist* artist;
   HGraph* graph;
-
-  CodeLibEnvironment& code_lib;
-
-  const std::vector<Injection>& injections;
 
  private:
   void InjectInstruction(HInstruction* instruction, const Injection& injection);
@@ -44,7 +41,7 @@ class HInjectionVisitor : public HArtistMethodVisitor {
   std::string GetInvokedMethod(HInstruction* instruction);
 
  public:
-  explicit HInjectionVisitor(HArtist* parentArtist, HGraph* method_graph, const std::vector<Injection>& injection_list);
+  explicit HInjectionVisitor(HUniversalArtist* parentArtist, HGraph* method_graph);
 
  public:
   static bool MethodSignatureStartsWith(const std::string& method_signature, const std::string& search_string);

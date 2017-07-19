@@ -68,7 +68,6 @@ class ArtistEnvironment {
   virtual void SetupEnvironment(const std::vector<const DexFile*>& dex_files,
                                 const std::string& dex_name,
                                 const DexFile& dex_file,
-                                CompilerDriver* compiler_driver,
                                 jobject jclass_loader) = 0;
 
  public:
