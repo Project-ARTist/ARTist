@@ -105,6 +105,7 @@ void HInjectionVisitor::InjectInstruction(HInstruction* instruction, const Injec
       ArtUtils::InjectMethodCall(injection_location,
                                  injection.GetSignature(),
                                  function_params,
+                                 artist->getCodeLibEnvironment(),
                                  Primitive::Type::kPrimVoid,
                                  true);
 

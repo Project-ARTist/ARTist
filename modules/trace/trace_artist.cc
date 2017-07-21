@@ -23,11 +23,10 @@
 #include <atomic>
 
 #include "trace_artist.h"
+#include "trace_codelib.h"
 #include "optimizing/artist/artist_log.h"
 #include "optimizing/artist/injection/injection_visitor.h"
 #include "optimizing/artist/env/java_env.h"
-#include "optimizing/artist/env/codelib.h"
-#include "class_linker.h"
 #include "class_linker-inl.h"
 
 #include "optimizing/artist/injection/primitives.h"
@@ -46,34 +45,21 @@ using std::sort;
 
 namespace art {
 
+std::vector<Injection> &HTraceArtist::ProvideInjections() const {
+  VLOG(artist) << "HTraceArtist::ProvideInjections()";
 
-/* setup */
-
-
-void HTraceArtist::SetupModule() {
-  // TODO: check if this still holds: "Locked by Environment"
-  const std::string& dex_name = ArtUtils::GetDexFileName(graph_);
-  SetupEnvironment(dex_name);
-
-  VLOG(artist) << "HTraceArtist::SetupModule()";
-
-  VLOG(artist) << "HTraceArtist::SetupModule(): initialization";
-
-  std::vector<Injection> injections;
+  static std::vector<Injection> injections;
   const std::string METHOD_SIGNATURE_TRACELOG =
-          CodeLib::_M_SAARLAND_CISPA_ARTIST_CODELIB_CODELIB__TRACELOG____V;
+          TraceCodeLib::TRACELOG;
 
-  // TODO Bug: Using Injection with multiple targets that have the same InjectionTarget
-  //           Leads to duplicate injections
   std::vector<shared_ptr<Parameter>> empty_Params;
+  Target target_all_methods(Target::GENERIC_TARGET, InjectionTarget::METHOD_END);
 
-  Target target_one(Target::GENERIC_TARGET, InjectionTarget::METHOD_END);
-
-  Injection injection(METHOD_SIGNATURE_TRACELOG, empty_Params, target_one);
+  Injection injection(METHOD_SIGNATURE_TRACELOG, empty_Params, target_all_methods);
   injections.push_back(injection);
 
-  SetupInjections(injections);
   VLOG(artist) << "HTraceArtist::SetupModule(): finished setting up injections";
+  return injections;
 }
 
 }  // namespace art

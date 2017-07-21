@@ -20,28 +20,30 @@
  *
  */
 
-#ifndef ART_ENV_CODELIB_H_
-#define ART_ENV_CODELIB_H_
+#ifndef ART_MODULES_TRACE_TRACE_CODELIB_H_
+#define ART_MODULES_TRACE_TRACE_CODELIB_H_
 
 #include <string>
 #include <unordered_set>
+#include "optimizing/artist/env/codelib.h"
 
-using std::unordered_set;
 using std::string;
+using std::unordered_set;
 
 namespace art {
 
-class CodeLib {
+class TraceCodeLib : public CodeLib {
  public:
-  CodeLib() {}
-  virtual ~CodeLib() {}
+  static const string TRACELOG;
 
-  // overwritten by concrete CodeLib
-  virtual unordered_set<string>& getMethods() const = 0;
-  virtual string& getInstanceField() const = 0;
-  virtual string& getCodeClass() const = 0;
-};  // class CodeLib
+ public:
+  TraceCodeLib() {}
+  virtual ~TraceCodeLib() {}
+  virtual unordered_set<string>& getMethods() const;
+  virtual string& getInstanceField() const;
+  virtual string& getCodeClass() const;
+};  // class TraceCodeLib
 
 }  // namespace art
 
-#endif  // ART_ENV_CODELIB_H_
+#endif  // ART_MODULES_TRACE_TRACE_CODELIB_H_

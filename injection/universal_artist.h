@@ -52,18 +52,17 @@ class HUniversalArtist : public HArtist {
   void RunModule() OVERRIDE;
 
   // injection-specifics
-  void AddInjection(const Injection& injection);
-  void SetInjections(const std::vector<Injection>& injection_list);
   const std::vector<Injection>& GetInjections();
   const std::unordered_map<std::string, std::vector<Injection>>& GetInjectionTable();
   const std::vector<Injection> GetInjectionTableEntry(const std::string& callback_key);
   bool EmplaceTableEntry(const std::string& callback_key, const Injection& single_injection);
 
  protected:
-  // helper
-  void SetupInjections(std::vector<Injection>& injection_list);
-  void SetupEnvironment(const std::string& dex_name);
+  // injection module interface, is only called once
+  virtual std::vector<Injection>& ProvideInjections() const = 0;
 
+ private:
+  void SetupInjections();
   // injection-specifics
   std::vector<Injection> injections;
 

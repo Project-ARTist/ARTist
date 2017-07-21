@@ -23,7 +23,6 @@
 #include <atomic>
 
 #include "universal_artist.h"
-#include "injections.h"
 #include "optimizing/artist/artist_log.h"
 #include "optimizing/artist/injection/injection_visitor.h"
 #include "optimizing/artist/env/java_env.h"
@@ -49,22 +48,16 @@ using std::sort;
 namespace art {
 
 void HUniversalArtist::SetupModule() {
-  // Locked by Environment
-  const std::string& dex_name = ArtUtils::GetDexFileName(graph_);
-  SetupEnvironment(dex_name);
-
-  static std::atomic_flag setup_ready = ATOMIC_FLAG_INIT;
-  if (!setup_ready.test_and_set()) {
-    std::vector<Injection> injection_list = HInjections::buildInjections();
-    SetupInjections(injection_list);
-  }
+    // get module-provided injections
+    this->injections = ProvideInjections();
+    // fill our internal data structures
+    SetupInjections();
 }
 
-void HUniversalArtist::SetupInjections(std::vector<Injection>& injection_list) {
+void HUniversalArtist::SetupInjections() {
     VLOG(artistd) << "SetupInjections()";
 
   VLOG(artistd) << "HUniversalArtist::SetupInjections()";
-  this->injections = injection_list;
 
   VLOG(artistd) << "HUniversalArtist::SetupInjections() InjectionCount Total #" << this->injections.size();
   int32_t targetCounter = 0;
@@ -114,15 +107,6 @@ void HUniversalArtist::SetupInjections(std::vector<Injection>& injection_list) {
   VLOG(artistd) << std::endl;
 }
 
-void HUniversalArtist::SetupEnvironment(const std::string& dex_name) {
-    VLOG(artistd) << "SetupEnvironment()";
-    CodeLibEnvironment& codeLib = CodeLibEnvironment::GetInstance();
-    const std::vector<const DexFile*> dex_files;
-    codeLib.SetupEnvironment(dex_files, dex_name, graph_->GetDexFile(), nullptr);
-    VLOG(artistd) << "SetupEnvironment() DONE";
-    VLOG(artistd) << std::endl;
-    VLOG(artistd) << std::endl;
-}
 
 void HUniversalArtist::RunModule()  {
   VLOG(artistd) << "RunTaskInjection()";
@@ -140,14 +124,6 @@ void HUniversalArtist::RunModule()  {
 const std::vector<Injection>& HUniversalArtist::GetInjections() {
     VLOG(artistd) << "HUniversalArtist::GetInjections()";
     return this->injections;
-}
-
-void HUniversalArtist::AddInjection(const Injection& injection) {
-    this->injections.push_back(injection);
-}
-
-void HUniversalArtist::SetInjections(const std::vector<Injection>& injection_list) {
-    this->injections = injection_list;
 }
 
 const std::unordered_map<std::string, std::vector<Injection>>& HUniversalArtist::GetInjectionTable() {

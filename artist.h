@@ -23,8 +23,9 @@
 #ifndef ART_ARTIST_H_
 #define ART_ARTIST_H_
 
-#include "optimizing/artist/injection/injection.h"
-#include "optimizing/artist/method_info.h"
+#include "env/codelib_environment.h"
+#include "injection/injection.h"
+#include "method_info.h"
 #include "optimizing/optimization.h"
 
 using std::string;
@@ -58,17 +59,18 @@ namespace art {
 
     const MethodInfo* GetMethodInfo() const;
 
+    void setCodeLibEnvironment(CodeLibEnvironment* environment);
+    CodeLibEnvironment* getCodeLibEnvironment();
+
     virtual ~HArtist();
 
     void Run() OVERRIDE;
 
-    const DexCompilationUnit& GetDexCompilationUnit();
-
    private:  // Member Vars
     HInstruction* code_lib;
+    CodeLibEnvironment* env;
 
   protected:  // Member Vars
-    const DexCompilationUnit& dex_compilation_unit;
     const MethodInfo* methodInfo;
 
     static uint32_t method_counter;

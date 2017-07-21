@@ -20,28 +20,39 @@
  *
  */
 
-#ifndef ART_ENV_CODELIB_H_
-#define ART_ENV_CODELIB_H_
+#ifndef ART_MODULES_LOGTIMIZATION_LOGTIMIZATION_ARTIST_H_
+#define ART_MODULES_LOGTIMIZATION_LOGTIMIZATION_ARTIST_H_
 
-#include <string>
-#include <unordered_set>
+#include "optimizing/artist/artist.h"
+#include "optimizing/optimization.h"
+#include "driver/dex_compilation_unit.h"
 
-using std::unordered_set;
 using std::string;
+using std::vector;
+using std::shared_ptr;
 
 namespace art {
 
-class CodeLib {
- public:
-  CodeLib() {}
-  virtual ~CodeLib() {}
+class HGraph;
+class HInstruction;
+class DexCompilationUnit;
+class OptimizingCompilerStats;
 
-  // overwritten by concrete CodeLib
-  virtual unordered_set<string>& getMethods() const = 0;
-  virtual string& getInstanceField() const = 0;
-  virtual string& getCodeClass() const = 0;
-};  // class CodeLib
+class HLogtimization : public HArtist {
+ public:
+  HLogtimization(HGraph* graph,
+                 const DexCompilationUnit& _dex_compilation_unit,
+#ifdef BUILD_MARSHMALLOW
+                 bool is_in_ssa_form = true,
+#endif
+                 const char* pass_name = "ArtistLogtimization",
+                 OptimizingCompilerStats* stats = nullptr);
+
+  virtual ~HLogtimization();
+
+  void RunModule() OVERRIDE;
+};
 
 }  // namespace art
 
-#endif  // ART_ENV_CODELIB_H_
+#endif  // ART_MODULES_LOGTIMIZATION_LOGTIMIZATION_ARTIST_H_

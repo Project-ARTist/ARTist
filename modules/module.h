@@ -16,32 +16,25 @@
  * limitations under the License.
  *
  * @author "Oliver Schranz <oliver.schranz@cispa.saarland>"
- * @author "Sebastian Weisgerber <weisgerber@cispa.saarland>"
  *
  */
 
-#ifndef ART_ENV_CODELIB_H_
-#define ART_ENV_CODELIB_H_
+#include "optimizing/artist/env/codelib.h"
+#include "optimizing/artist/artist.h"
 
-#include <string>
-#include <unordered_set>
-
-using std::unordered_set;
-using std::string;
+#ifndef ART_MODULES_MODULE_H_
+#define ART_MODULES_MODULE_H_
 
 namespace art {
 
-class CodeLib {
+class Module {
  public:
-  CodeLib() {}
-  virtual ~CodeLib() {}
-
-  // overwritten by concrete CodeLib
-  virtual unordered_set<string>& getMethods() const = 0;
-  virtual string& getInstanceField() const = 0;
-  virtual string& getCodeClass() const = 0;
-};  // class CodeLib
+    virtual ~Module() {}
+    virtual HArtist* createPass(HGraph* graph, const DexCompilationUnit& dex_compilation_unit) const = 0;
+    virtual const CodeLib* createCodeLib() const = 0;
+    // obtain module settings?
+};
 
 }  // namespace art
 
-#endif  // ART_ENV_CODELIB_H_
+#endif  // ART_MODULES_MODULE_H_

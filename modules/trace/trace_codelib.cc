@@ -20,36 +20,23 @@
  *
  */
 
-#ifndef ART_MODULES_METHOD_TRACING_TRACE_ARTIST_H_
-#define ART_MODULES_METHOD_TRACING_TRACE_ARTIST_H_
-
-#include "optimizing/artist/injection/universal_artist.h"
+#include "trace_codelib.h"
 
 namespace art {
 
-class HTraceArtist : public HUniversalArtist {
- public:
-  HTraceArtist(
-      HGraph* graph,
-      const DexCompilationUnit& _dex_compilation_unit,
-#ifdef BUILD_MARSHMALLOW
-      bool is_in_ssa_form = true,
-#endif
-      const char* pass_name = "TraceArtist"
-      , OptimizingCompilerStats* stats = nullptr)
-      : HUniversalArtist(graph
-      , _dex_compilation_unit
-#ifdef BUILD_MARSHMALLOW
-      , is_in_ssa_form
-#endif
-      , pass_name
-      , stats) {
-    // Nothing
-  }
+const std::string TraceCodeLib::TRACELOG =
+            "Lsaarland/cispa/artist/codelib/CodeLib;traceLog()V";
 
-  void SetupModule() OVERRIDE;
-};
-
+unordered_set<string>& TraceCodeLib::getMethods() const {
+    static unordered_set<string> methods({TRACELOG});
+    return methods;
+}
+string& TraceCodeLib::getInstanceField() const {
+    static string instanceField = "Lsaarland/cispa/artist/codelib/CodeLib;INSTANCE";
+    return instanceField;
+}
+string& TraceCodeLib::getCodeClass() const {
+    static string codeClass = "Lsaarland/cispa/artist/codelib/CodeLib;";
+    return codeClass;
+}
 }  // namespace art
-
-#endif  // ART_MODULES_METHOD_TRACING_TRACE_ARTIST_H_

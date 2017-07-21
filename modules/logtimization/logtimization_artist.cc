@@ -22,8 +22,10 @@
 
 #include "runtime.h"
 
-#include "logtimization.h"
+#include "logtimization_artist.h"
 #include "optimizing/artist/env/codelib_environment.h"
+#include "optimizing/artist/artist_log.h"
+
 
 using std::string;
 using std::vector;
@@ -44,29 +46,16 @@ HLogtimization::HLogtimization(HGraph* graph,
       , is_in_ssa_form
 #endif
     , pass_name, stats) {
-  gLogVerbosity.artist = true;
-  gLogVerbosity.artistd = true;
+  ArtistLog::ForceVerboseLogging();
 }
 
 HLogtimization::~HLogtimization() { }
-
-void HLogtimization::SetupModule() {
-  const std::string& dex_name = ArtUtils::GetDexFileName(graph_);
-  CodeLibEnvironment& env = CodeLibEnvironment::GetInstance();
-  const std::vector<const DexFile*> dex_files;
-  env.SetupEnvironment(dex_files, dex_name, graph_->GetDexFile(), nullptr);
-}
 
 void HLogtimization::RunModule() {
   CHECK(graph_ != nullptr);
   VLOG(artistd) << "<##########################################################>";
 
   const DexFile& dexFile = graph_->GetDexFile();
-//  AnalyzerEnvironment& env = AnalyzerEnvironment::GetInstance();
-//  ClassLinker* class_linker = Runtime::Current()->GetClassLinker();
-//  mirror::DexCache* dexcache = nullptr;
-//  dexcache = class_linker->FindDexCache(dexFile);
-
   const string& dexFilePath = dexFile.GetLocation();
   const string methodSignature = PrettyMethod(graph_->GetMethodIdx(), dexFile);
 

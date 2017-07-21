@@ -39,7 +39,6 @@
 #include "injection/integer.h"
 #include "injection/float.h"
 
-#include "optimizing/artist/injection/injections.h"
 
 using std::string;
 using std::vector;
@@ -64,26 +63,20 @@ HArtist::HArtist(HGraph* graph,
 #endif
                     pass_name, stats)
     , code_lib(nullptr)
-    , dex_compilation_unit(_dex_compilation_unit)
+    , env(nullptr)
     , methodInfo(MethodInfoFactory::Obtain(graph, _dex_compilation_unit)) {
   ArtistLog::SetupArtistLogging();
   const string& VERSION = "00109";
   LogVersionOnce(VERSION);
 }
 
+// TODO move out of multithreaded area
 void HArtist::LogVersionOnce(const string& VERSION) const {
   static std::atomic_flag version_logged = ATOMIC_FLAG_INIT;
 
   if (!version_logged.test_and_set()) {
     VLOG(artist) << std::endl
                  << "HArtist() Version: " << VERSION << std::endl;
-
-    const vector<Injection>& injections = HInjections::buildInjections();
-    VLOG(artist) << "HArtist() Injections: " << injections.size();
-    uint32_t counter = 0;
-    for (auto && injection_ : injections) {
-      VLOG(artist) << "#" << ++counter << " "<< injection_;
-    }
   }
 }
 
@@ -94,7 +87,6 @@ HArtist::~HArtist() {
 
 void HArtist::Run() {
   CHECK(graph_ != nullptr);
-  CHECK(dex_compilation_unit.GetDexFile() != nullptr);
 
   const std::string methodName = methodInfo->GetMethodName();
   const std::string& dexFileName = graph_->GetDexFile().GetLocation();
@@ -103,8 +95,7 @@ void HArtist::Run() {
     VLOG(artistd) << "HArtist::Run() SKIPPING " << methodName << " (" << dexFileName << ")";;
     return;
   }
-  CodeLibEnvironment& env = CodeLibEnvironment::GetInstance();
-  if (env.IsCodeLib(graph_->GetDexFile())) {
+  if (env->IsCodeLib(graph_->GetDexFile())) {
     VLOG(artistd) << "HArtist::Run() SKIPPING CodeLib " << methodName << " (" << dexFileName << ")";
     return;
   }
@@ -129,9 +120,9 @@ void HArtist::Setup() {
 HInstruction* HArtist::GetCodeLib(HInstruction* instruction_cursor) {
   if (this->code_lib == nullptr) {
     if (instruction_cursor == nullptr) {
-      this->code_lib = ArtUtils::InjectCodeLib(graph_->GetEntryBlock()->GetLastInstruction());
+      this->code_lib = ArtUtils::InjectCodeLib(graph_->GetEntryBlock()->GetLastInstruction(), env);
     } else {
-      this->code_lib = ArtUtils::InjectCodeLib(instruction_cursor, false);
+      this->code_lib = ArtUtils::InjectCodeLib(instruction_cursor, env, false);
     }
   }
   return this->code_lib;
@@ -153,8 +144,12 @@ void HArtist::RunModule() {
   VLOG(artist) << "HArtist::RunModule(): No-op, override this method in the concrete module. ";
 }
 
-const DexCompilationUnit& HArtist::GetDexCompilationUnit() {
-  return dex_compilation_unit;
+void HArtist::setCodeLibEnvironment(CodeLibEnvironment *environment) {
+  this->env = environment;
+}
+
+CodeLibEnvironment *HArtist::getCodeLibEnvironment() {
+  return env;
 }
 
 }  // namespace art

@@ -24,6 +24,7 @@
 #define ART_ARTIST_UTILS_H_
 
 #include <optimizing/nodes.h>
+#include "env/codelib_environment.h"
 
 using std::string;
 using std::vector;
@@ -70,10 +71,13 @@ namespace art {
     static void DumpFields(const HGraph* graph);
     static void DumpFields(const DexFile& dex_file);
 
-    static HInstruction* InjectCodeLib(const HInstruction* instruction_cursor, const bool entry_block_injection = true);
+    static HInstruction* InjectCodeLib(const HInstruction* instruction_cursor,
+                                       CodeLibEnvironment* env,
+                                       const bool entry_block_injection = true);
     static HInstruction* InjectMethodCall(HInstruction* instruction_cursor,
                                        const std::string& method_signature,
                                        std::vector<HInstruction*>& function_params,
+                                       CodeLibEnvironment* env,
                                        const Primitive::Type returnType = Primitive::Type::kPrimVoid,
                                        const bool inject_before = true);
 

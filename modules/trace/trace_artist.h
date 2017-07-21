@@ -20,40 +20,36 @@
  *
  */
 
-#ifndef ART_MODULES_ANALYZER_LOGTIMIZATION_H_
-#define ART_MODULES_ANALYZER_LOGTIMIZATION_H_
+#ifndef ART_MODULES_TRACE_TRACE_ARTIST_H_
+#define ART_MODULES_TRACE_TRACE_ARTIST_H_
 
-#include "optimizing/artist/artist.h"
-#include "optimizing/optimization.h"
-#include "driver/dex_compilation_unit.h"
-
-using std::string;
-using std::vector;
-using std::shared_ptr;
+#include "optimizing/artist/injection/universal_artist.h"
 
 namespace art {
 
-class HGraph;
-class HInstruction;
-class DexCompilationUnit;
-class OptimizingCompilerStats;
-
-class HLogtimization : public HArtist {
+class HTraceArtist : public HUniversalArtist {
  public:
-  HLogtimization(HGraph* graph,
-                 const DexCompilationUnit& _dex_compilation_unit,
+  HTraceArtist(
+      HGraph* graph,
+      const DexCompilationUnit& _dex_compilation_unit,
 #ifdef BUILD_MARSHMALLOW
-                 bool is_in_ssa_form = true,
+      bool is_in_ssa_form = true,
 #endif
-                 const char* pass_name = "ArtistLogtimization",
-                 OptimizingCompilerStats* stats = nullptr);
+      const char* pass_name = "TraceArtist"
+      , OptimizingCompilerStats* stats = nullptr)
+      : HUniversalArtist(graph
+      , _dex_compilation_unit
+#ifdef BUILD_MARSHMALLOW
+      , is_in_ssa_form
+#endif
+      , pass_name
+      , stats) {
+    // Nothing
+  }
 
-  virtual ~HLogtimization();
-
-  void SetupModule() OVERRIDE;
-  void RunModule() OVERRIDE;
+  virtual std::vector<Injection>& ProvideInjections() const OVERRIDE;
 };
 
 }  // namespace art
 
-#endif  // ART_MODULES_ANALYZER_LOGTIMIZATION_H_
+#endif  // ART_MODULES_TRACE_TRACE_ARTIST_H_

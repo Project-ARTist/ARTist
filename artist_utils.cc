@@ -25,7 +25,6 @@
 #include "artist_utils.h"
 #include "artist_log.h"
 #include "env/java_env.h"
-#include "env/codelib.h"
 #include "env/codelib_environment.h"
 #include "mirror/dex_cache.h"
 #include "mirror/dex_cache-inl.h"
@@ -203,7 +202,10 @@ void ArtUtils::DumpFields(const DexFile& dex_file) {
  *
  */
 HInstruction* ArtUtils::InjectCodeLib(const HInstruction* instruction_cursor,
+                                      CodeLibEnvironment* env,
                                       const bool entry_block_injection) {
+  CHECK(instruction_cursor != nullptr);
+  CHECK(env != nullptr);
   VLOG(artistd) << "ArtUtils::InjectCodeLib()" << std::flush;
   HGraph* graph = instruction_cursor->GetBlock()->GetGraph();
   VLOG(artistd) << "ArtUtils::InjectCodeLib() Dex: " << graph->GetDexFile().GetLocation() << std::flush;
@@ -216,9 +218,8 @@ HInstruction* ArtUtils::InjectCodeLib(const HInstruction* instruction_cursor,
     injection_cursor = const_cast<HInstruction*>(instruction_cursor);
   }
 
-  const std::string dex_file_name = GetDexFileName(graph);
+  const std::string dex_file_name = ArtUtils::GetDexFileName(graph);
 
-  CodeLibEnvironment& codeLib = CodeLibEnvironment::GetInstance();
 
   HBasicBlock* injectionBlock = injection_cursor->GetBlock();
 
@@ -234,7 +235,7 @@ HInstruction* ArtUtils::InjectCodeLib(const HInstruction* instruction_cursor,
 #else
   HLoadClass* loadClassCodeLib = new(allocator) HLoadClass(
       graph->GetCurrentMethod(),
-      codeLib.GetTypeIdxCodeLib(dex_file_name),
+      env->GetTypeIdxCodeLib(dex_file_name),
       graph->GetDexFile(),
       false,
       0,
@@ -262,20 +263,20 @@ HInstruction* ArtUtils::InjectCodeLib(const HInstruction* instruction_cursor,
     StackHandleScope<1> hs(soa.Self());
     ClassLinker* class_linker = Runtime::Current()->GetClassLinker();
 
-    const string& code_lib_dexname = codeLib.GetCodeLibDexFileName();
+    const string& code_lib_dexname = env->GetCodeLibDexFileName();
 
     Handle<mirror::DexCache> codelib_dex_cache(
         hs.NewHandle(
             class_linker->FindDexCache(
-                Thread::Current(), *codeLib.GetCodeLibDexFile(), false)));
+                Thread::Current(), *env->GetCodeLibDexFile(), false)));
 
     HStaticFieldGet* getFieldInstance = new(allocator) HStaticFieldGet(clInitCheckCodelib,
                                                                        Primitive::Type::kPrimNot,
-                                                                       codeLib.GetInstanceField(code_lib_dexname),
+                                                                       env->GetInstanceField(code_lib_dexname),
                                                                        IS_VOLATILE,
-                                                                       codeLib.GetInstanceFieldIdx(code_lib_dexname),
-                                                                       codeLib.GetClassDefIdxCodeLib(code_lib_dexname),
-                                                                       *codeLib.GetDexFile(code_lib_dexname),
+                                                                       env->GetInstanceFieldIdx(code_lib_dexname),
+                                                                       env->GetClassDefIdxCodeLib(code_lib_dexname),
+                                                                       *env->GetDexFile(code_lib_dexname),
                                                                        codelib_dex_cache,
                                                                        0);
   #endif
@@ -293,8 +294,10 @@ HInstruction* ArtUtils::InjectCodeLib(const HInstruction* instruction_cursor,
 HInstruction* ArtUtils::InjectMethodCall(HInstruction* instruction_cursor,
                                 const std::string& method_signature,
                                 std::vector<HInstruction*>& function_params,
+                                CodeLibEnvironment* env,
                                 const Primitive::Type returnType,
                                 const bool inject_before) {
+  CHECK(env != nullptr);
   VLOG(artistd) << "ArtUtils::InjectMethodCall() Params : "
                << function_params.size()
                << " - "
@@ -304,13 +307,11 @@ HInstruction* ArtUtils::InjectMethodCall(HInstruction* instruction_cursor,
   HGraph* graph = instruction_cursor->GetBlock()->GetGraph();
   VLOG(artistd) << "ArtUtils::InjectMethodCall() graph:       " << graph << std::flush;
 
-  const std::string dex_file_name = GetDexFileName(graph);
+  const std::string dex_file_name = ArtUtils::GetDexFileName(graph);
 
   HBasicBlock* instructionBlock = instruction_cursor->GetBlock();
   HInstruction* firstBlockCursor = graph->GetEntryBlock()->GetLastInstruction();
   ArenaAllocator* allocator = graph->GetArena();
-
-  CodeLibEnvironment& code_lib = CodeLibEnvironment::GetInstance();
 
   HBasicBlock* entryBlock = firstBlockCursor->GetBlock();
   CHECK(entryBlock != nullptr);
@@ -322,8 +323,8 @@ HInstruction* ArtUtils::InjectMethodCall(HInstruction* instruction_cursor,
                                                                      function_params.size(),
                                                                      returnType,
                                                                      DEX_PC,
-                                                                     code_lib.GetMethodDexfileIdx(dex_file_name, method_signature),
-                                                                     code_lib.GetMethodVtableIdx(code_lib.GetCodeLibDexFileName(), method_signature));
+                                                                     env->GetMethodDexfileIdx(dex_file_name, method_signature),
+                                                                     env->GetMethodVtableIdx(env->GetCodeLibDexFileName(), method_signature));
 
   ArtUtils::SetupInstructionArguments(invokeInstruction, function_params);
 

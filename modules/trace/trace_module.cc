@@ -16,32 +16,20 @@
  * limitations under the License.
  *
  * @author "Oliver Schranz <oliver.schranz@cispa.saarland>"
- * @author "Sebastian Weisgerber <weisgerber@cispa.saarland>"
  *
  */
 
-#ifndef ART_ENV_CODELIB_H_
-#define ART_ENV_CODELIB_H_
-
-#include <string>
-#include <unordered_set>
-
-using std::unordered_set;
-using std::string;
+#include "trace_module.h"
+#include "trace_artist.h"
+#include "trace_codelib.h"
 
 namespace art {
 
-class CodeLib {
- public:
-  CodeLib() {}
-  virtual ~CodeLib() {}
+    HArtist* TraceModule::createPass(HGraph *graph, const DexCompilationUnit &dex_compilation_unit) const {
+        return new (graph->GetArena()) HTraceArtist(graph, dex_compilation_unit);
+    }
 
-  // overwritten by concrete CodeLib
-  virtual unordered_set<string>& getMethods() const = 0;
-  virtual string& getInstanceField() const = 0;
-  virtual string& getCodeClass() const = 0;
-};  // class CodeLib
-
+    const CodeLib* TraceModule::createCodeLib() const {
+        return new TraceCodeLib();
+    }
 }  // namespace art
-
-#endif  // ART_ENV_CODELIB_H_

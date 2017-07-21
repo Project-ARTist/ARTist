@@ -24,36 +24,26 @@
 
 #include "class_linker.h"
 #include "class_linker-inl.h"
-#include "runtime.h"
 #include "driver/dex_compilation_unit.h"
 #include "driver/compiler_driver-inl.h"
-#include "driver/compiler_driver.h"
 
 #include "codelib_environment.h"
 #include "codelib.h"
-
 #include "optimizing/artist/artist_log.h"
 
 namespace art {
 
 // Methods
-CodeLibEnvironment& CodeLibEnvironment::GetInstance() {
-  static CodeLibEnvironment instance;  // Guaranteed to be Instantiated on First use and destroyed automatically later.
-  return instance;
-}
 
-CodeLibEnvironment::~CodeLibEnvironment() {
-  pthread_mutex_destroy(&mutex_lock);
-  delete[] this->env_setup_ready;
-}
-
+// TODO
 void CodeLibEnvironment::PreInitializeEnvironmentCodeLib(jobject class_loader,
                                                          const std::vector<const DexFile *>& dex_files) {
   VLOG(artistd) << "PreInitializeEnvironmentCodeLib()";
+// TODO make it compile until refactoring is finished
+//  CodeLibEnvironment::GetInstance().SetDexFiles(dex_files);
 
-  CodeLibEnvironment::GetInstance().SetDexFiles(dex_files);
-
-  CodeLibEnvironment& env = CodeLibEnvironment::GetInstance();
+//  CodeLibEnvironment& env = CodeLibEnvironment::GetInstance();
+  CodeLibEnvironment env(nullptr);
   for (auto && dexFile : dex_files) {
     VLOG(artistd) << "PreInitializeEnvironmentCodeLib() DexFile: " << dexFile->GetLocation();
     env.SetupEnvironment(dex_files, dexFile->GetLocation(), *dexFile, class_loader);
@@ -114,7 +104,7 @@ void CodeLibEnvironment::SetupEnvironment(const std::vector<const DexFile*>& dex
 
     VLOG(artistd) << "SetupEnvironment(): ArtUtils::FindTypeIdxFromName()";
     const int64_t codelib_type_id =
-        ArtUtils::FindTypeIdxFromName(dex_file, CodeLib::_C_CODECLASS);
+        ArtUtils::FindTypeIdxFromName(dex_file, _codeLib->getCodeClass());
     if (codelib_type_id == ArtUtils::NO_TYPE_ID_FOUND) {
       ArtUtils::DumpTypes(dex_file);
       VLOG(artist) << "SetupEnvironment() Could not find Codelib DexFile: " << dex_name << " index: " << dex_index;
@@ -140,7 +130,7 @@ void CodeLibEnvironment::SetupEnvironment(const std::vector<const DexFile*>& dex
 
     const int64_t codelib_field_instance_idx =
         ArtUtils::FindFieldIdxFromName(dex_file,
-                                       CodeLib::_F_CODECLASS_INSTANCE);
+                                       _codeLib->getInstanceField());
     VLOG(artistd) << "SetupEnvironment(): FindFieldIdxFromName() Index: " << codelib_field_instance_idx;
     SetupEnvironmentClassMemberField(dex_name,
                                      dex_file,
@@ -248,7 +238,7 @@ void CodeLibEnvironment::SetupEnvironmentClassMemberField(const string& dex_name
     VLOG(artistd) << "SetupEnvironment(): ->SetInstanceField() instance_field_offset: " << instance_field_offset.SizeValue();
     SetInstanceField(dex_name, instance_field_offset);
   }
-  int64_t class_def_idx = ArtUtils::FindClassDefIdxFromName(dex_file, CodeLib::_C_CODECLASS);
+  int64_t class_def_idx = ArtUtils::FindClassDefIdxFromName(dex_file, _codeLib->getCodeClass());
   if (class_def_idx != ArtUtils::NO_CLASS_DEF_IDX_FOUND) {
     VLOG(artistd) << "SetupEnvironment(): FindClassDefIdxFromName ClassDef Index: " << class_def_idx;
     SetClassDefIdxCodeLib(dex_name, class_def_idx);
@@ -304,12 +294,8 @@ void CodeLibEnvironment::PreInitializeDexfileEnv(const string& dex_name,
 }
 
 
-CodeLibEnvironment::CodeLibEnvironment()
-    : ArtistEnvironment()
-    , JAVA_LIB_METHODS(CodeLib::GetMethods()) { }
-
 const std::unordered_set<std::string>& CodeLibEnvironment::GetMethods() const {
-  return this->JAVA_LIB_METHODS;
+  return this->_codeLib->getMethods();
 }
 
 const std::vector<std::string> CodeLibEnvironment::GetFields() const {

@@ -32,7 +32,6 @@ LIBART_COMPILER_SRC_FILES += \
     optimizing/artist/blacklist.cc \
     optimizing/artist/env/artist_environment.cc \
     optimizing/artist/env/java_env.cc \
-    optimizing/artist/env/codelib.cc \
     optimizing/artist/env/codelib_environment.cc \
     optimizing/artist/injection/injection.cc \
     optimizing/artist/injection/injection_visitor.cc \
@@ -44,6 +43,10 @@ LIBART_COMPILER_SRC_FILES += \
     optimizing/artist/method_info.cc \
     optimizing/artist/method_info_factory.cc \
     optimizing/artist/param_finder.cc \
-    optimizing/artist/modules/analyzer/logtimization.cc \
-    optimizing/artist/modules/method-tracing/trace_artist.cc \
+    optimizing/artist/modules/module_manager.cc \
+    optimizing/artist/modules/logtimization/logtimization_artist.cc \
+    optimizing/artist/modules/logtimization/logtimization_module.cc \
+    optimizing/artist/modules/trace/trace_artist.cc \
+    optimizing/artist/modules/trace/trace_module.cc \
+    optimizing/artist/modules/trace/trace_codelib.cc \
     optimizing/artist/verbose_printer.cc

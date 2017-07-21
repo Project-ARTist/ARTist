@@ -25,6 +25,8 @@
 
 #include "artist_environment.h"
 #include "offsets.h"
+#include "codelib.h"
+#include "class_linker.h"
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -32,14 +34,16 @@
 namespace art {
 
 class MemberOffset;
-class CompilerDriver;
 
-/** CodeLibEnvironment Singleton, for easy access and existence throughout all RUN()s */
 class CodeLibEnvironment : public ArtistEnvironment {
  public:
-  static CodeLibEnvironment& GetInstance();
+  // codelib will be deleted in destructor
+  explicit CodeLibEnvironment(const CodeLib* codeLib) : ArtistEnvironment(), _codeLib(codeLib) {}
 
- public:
+  ~CodeLibEnvironment() {
+    delete this->_codeLib;
+  }
+
   const std::unordered_set<std::string>& GetMethods() const;
   const std::vector<std::string> GetFields() const;
 
@@ -61,29 +65,26 @@ class CodeLibEnvironment : public ArtistEnvironment {
   uint32_t GetClassDefIdxCodeLib(const std::string& dex_name) const;
   void SetClassDefIdxCodeLib(const std::string& dex_name, const uint32_t type_idx_codelib);
 
+
+
+
+  // TODO REFACTOR
   static void PreInitializeEnvironmentCodeLib(jobject class_loader,
                                               const std::vector<const DexFile *> &dex_files);
-
+  // TODO REFACTOR
   virtual void SetupEnvironment(const std::vector<const DexFile*>& dex_files,
                                 const std::string& dex_name,
                                 const DexFile& dex_file,
                                 jobject jclass_loader);
 
-  explicit CodeLibEnvironment(CodeLibEnvironment const&) = delete;
-
-  void operator=(CodeLibEnvironment const&) = delete;
-
 
  private:
-  CodeLibEnvironment();
+  const CodeLib* _codeLib;
 
-  ~CodeLibEnvironment();
-
-  const std::unordered_set<std::string> JAVA_LIB_METHODS;
-
+  // TODO REFACTOR
   void PreInitializeDexfileEnv(const std::string& dex_name, const std::vector<const DexFile*>& dex_files,
                                const size_t dexfile_count_apk, const size_t dex_file_count_total);
-
+  // TODO REFACTOR
   void SetupEnvironmentClassMemberField(const std::string& dex_name,
                                         const DexFile& dex_file,
                                         ClassLinker* class_linker,
@@ -92,7 +93,7 @@ class CodeLibEnvironment : public ArtistEnvironment {
                                         const Handle <mirror::ClassLoader>&,
                                         const Handle <mirror::DexCache>& dex_cache,
                                         const uint32_t code_lib_field_idx);
-
+  // TODO REFACTOR
   void SetupEnvironmentMethod(const std::string& dex_name,
                               const DexFile& dex_file,
                               ClassLinker* class_linker,
