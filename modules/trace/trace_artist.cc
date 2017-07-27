@@ -48,18 +48,19 @@ namespace art {
 std::vector<Injection> &HTraceArtist::ProvideInjections() const {
   VLOG(artist) << "HTraceArtist::ProvideInjections()";
 
-  static std::vector<Injection> injections;
+  std::vector<Injection>* injections = new std::vector<Injection>();    // TODO where is this deleted?
   const std::string METHOD_SIGNATURE_TRACELOG =
           TraceCodeLib::TRACELOG;
 
   std::vector<shared_ptr<Parameter>> empty_Params;
-  Target target_all_methods(Target::GENERIC_TARGET, InjectionTarget::METHOD_END);
+//  Target target_all_methods(Target::GENERIC_TARGET, InjectionTarget::METHOD_END);
+  Target target_all_methods(".onCreate(", InjectionTarget::METHOD_START);
 
   Injection injection(METHOD_SIGNATURE_TRACELOG, empty_Params, target_all_methods);
-  injections.push_back(injection);
+  injections->push_back(injection);
 
   VLOG(artist) << "HTraceArtist::SetupModule(): finished setting up injections";
-  return injections;
+  return *injections;
 }
 
 }  // namespace art

@@ -27,12 +27,27 @@
 
 namespace art {
 
+/**
+ * Encapsulates an ARTist module that consists of an ARTist "optimization pass" and, optionally, a corresponding codelib.
+ */
 class Module {
  public:
-    virtual ~Module() {}
-    virtual HArtist* createPass(HGraph* graph, const DexCompilationUnit& dex_compilation_unit) const = 0;
-    virtual const CodeLib* createCodeLib() const = 0;
-    // obtain module settings?
+  virtual ~Module() {}
+  /**
+   * Create an "optimization pass" that is executed as a part of Optimizing's optimization framework.
+   *
+   * @param graph the current method graph
+   * @param dex_compilation_unit
+   * @return ARTist pass
+   */
+  virtual HArtist* createPass(HGraph* graph, const DexCompilationUnit& dex_compilation_unit) const = 0;
+
+  /**
+   * Create an instance of the accompanying codelib, if any.
+   *
+   * @return codelib or nullptr
+   */
+  virtual const CodeLib* createCodeLib() const = 0;
 };
 
 }  // namespace art

@@ -33,6 +33,8 @@ LIBART_COMPILER_SRC_FILES += \
     optimizing/artist/env/artist_environment.cc \
     optimizing/artist/env/java_env.cc \
     optimizing/artist/env/codelib_environment.cc \
+    optimizing/artist/env/codelib_symbols.cc \
+    optimizing/artist/env/dexfile_environment.cc \
     optimizing/artist/injection/injection.cc \
     optimizing/artist/injection/injection_visitor.cc \
     optimizing/artist/injection/parameter.cc \

@@ -51,15 +51,13 @@ void HUniversalArtist::SetupModule() {
     // get module-provided injections
     this->injections = ProvideInjections();
     // fill our internal data structures
-    SetupInjections();
+    SetupInjections();  // FIXME this is horibly slow AND redundant since it is identical in each instance
 }
 
 void HUniversalArtist::SetupInjections() {
     VLOG(artistd) << "SetupInjections()";
 
-  VLOG(artistd) << "HUniversalArtist::SetupInjections()";
-
-  VLOG(artistd) << "HUniversalArtist::SetupInjections() InjectionCount Total #" << this->injections.size();
+//  VLOG(artist) << "HUniversalArtist::SetupInjections() InjectionCount Total #" << this->injections.size();
   int32_t targetCounter = 0;
   for (auto const & injection : this->injections) {
       VLOG(artistd) << "HUniversalArtist::SetupInjections() Method:      " << injection.GetSignature();
@@ -109,14 +107,14 @@ void HUniversalArtist::SetupInjections() {
 
 
 void HUniversalArtist::RunModule()  {
-  VLOG(artistd) << "RunTaskInjection()";
+//  VLOG(artist) << "RunTaskInjection()";
 
   HInjectionVisitor injectionVisitor(this, graph_);
   injectionVisitor.VisitInsertionOrder();
 
-  ArtistLog::LogMethod(this->methodInfo);
+  ArtistLog::LogMethod(this->method_info);
 
-  VLOG(artistd) << "RunTaskInjection() DONE";
+  VLOG(artist) << "RunTaskInjection() DONE";
 }
 
 // injection-specifics

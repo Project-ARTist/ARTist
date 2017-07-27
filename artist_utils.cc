@@ -25,14 +25,9 @@
 #include "artist_utils.h"
 #include "artist_log.h"
 #include "env/java_env.h"
-#include "env/codelib_environment.h"
-#include "mirror/dex_cache.h"
 #include "mirror/dex_cache-inl.h"
 #include "param_finder.h"
 
-#include "injection/injection.h"
-
-#include "injection/parameter.h"
 #include "injection/primitives.h"
 #include "injection/boolean.h"
 #include "injection/char.h"
@@ -40,18 +35,13 @@
 #include "injection/float.h"
 #include "injection/integer.h"
 #include "injection/long.h"
-#include "injection/object.h"
-#include "injection/string.h"
 
 #include "driver/compiler_driver.h"
 #include "driver/compiler_driver-inl.h"
 
-namespace art {
+using std::terminate;
 
-const uint32_t ArtUtils::NO_METHOD_IDX_FOUND = 100000;  // DexFile MethodLimit is < 66k
-const int64_t ArtUtils::NO_CLASS_DEF_IDX_FOUND = -1;
-const int64_t ArtUtils::NO_TYPE_ID_FOUND = -1;
-const int64_t ArtUtils::NO_FIELD_ID_FOUND = -1;
+namespace art {
 
 const DexFile::MethodId* ArtUtils::FindMethodId(const HGraph* graph,
                                                 const std::string& searched_method_name) {
@@ -82,49 +72,41 @@ const DexFile::MethodId* ArtUtils::FindMethodId(const DexFile& dex_file,
   return foundMethodId;
 }
 
-int64_t ArtUtils::FindMethodIdx(const HGraph* graph, const std::string& searched_method_name) {
+    MethodIdx ArtUtils::FindMethodIdx(const HGraph* graph, const std::string& searched_method_name) {
   return FindMethodIdx(graph->GetDexFile(), searched_method_name);
 }
-int64_t ArtUtils::FindMethodIdx(const DexFile& dex_file, const std::string& searched_method_name) {
+MethodIdx ArtUtils::FindMethodIdx(const DexFile& dex_file, const std::string& searched_method_name) {
   const DexFile::MethodId* methodId = ArtUtils::FindMethodId(dex_file, searched_method_name);
-
-  CHECK(methodId != nullptr);
-
-  uint32_t methodIDx = NO_METHOD_IDX_FOUND;
-
   if (methodId != nullptr) {
-    methodIDx = dex_file.GetIndexForMethodId(*methodId);
+    return dex_file.GetIndexForMethodId(*methodId);
   }
-  return methodIDx;
+  auto msg("Could not find method idx for " + searched_method_name);
+  abort(msg);
 }
 
-int64_t ArtUtils::FindTypeIdxFromName(const HGraph* graph, const std::string & searched_type_name) {
+TypeIdx ArtUtils::FindTypeIdxFromName(const HGraph* graph, const std::string & searched_type_name) {
   return FindTypeIdxFromName(graph->GetDexFile(), searched_type_name);
 }
 
-int64_t ArtUtils::FindTypeIdxFromName(const DexFile& dex_file, const std::string & searched_type_name) {
-  int64_t typeIdx = NO_TYPE_ID_FOUND;
-
+TypeIdx ArtUtils::FindTypeIdxFromName(const DexFile& dex_file, const std::string & searched_type_name) {
   for (uint32_t i = 0; i < dex_file.NumTypeIds(); i++) {
     const DexFile::TypeId& typeId = dex_file.GetTypeId(i);
     std::string type_name(dex_file.GetTypeDescriptor(typeId));
     if (type_name.compare(searched_type_name) == 0) {
-      typeIdx = dex_file.GetIndexForTypeId(typeId);
-      VLOG(artistd) << "Returning TypeIdx: " << typeIdx << " Type: " << searched_type_name;
+        TypeIdx typeIdx = dex_file.GetIndexForTypeId(typeId);
+        VLOG(artistd) << "Returning TypeIdx: " << typeIdx << " Type: " << searched_type_name;
+        return typeIdx;
     }
   }
-  if (typeIdx == NO_TYPE_ID_FOUND) {
-    VLOG(artistd) << "Could not find type: " << searched_type_name;
-  }
-  return typeIdx;
+  auto msg("Could not find type" + searched_type_name);
+  abort(msg);
 }
 
-int64_t ArtUtils::FindFieldIdxFromName(const HGraph* graph, const std::string & searched_field_name) {
+FieldIdx ArtUtils::FindFieldIdxFromName(const HGraph* graph, const std::string & searched_field_name) {
   return FindFieldIdxFromName(graph->GetDexFile(), searched_field_name);
 }
 
-int64_t ArtUtils::FindFieldIdxFromName(const DexFile& dex_file, const std::string & searched_field_name) {
-  int64_t fieldIdx = NO_FIELD_ID_FOUND;
+FieldIdx ArtUtils::FindFieldIdxFromName(const DexFile& dex_file, const std::string & searched_field_type) {
   for (uint32_t i = 0; i < dex_file.NumFieldIds(); i++) {
     const DexFile::FieldId &fieldId = dex_file.GetFieldId(i);
 
@@ -132,33 +114,33 @@ int64_t ArtUtils::FindFieldIdxFromName(const DexFile& dex_file, const std::strin
     const std::string fieldType(dex_file.GetFieldTypeDescriptor(fieldId));
     const std::string fullyQualifiedFieldName(fieldType + fieldName);
 
-    if (fullyQualifiedFieldName.compare(searched_field_name) == 0) {
-      fieldIdx = dex_file.GetIndexForFieldId(fieldId);
-      VLOG(artistd) << "Returning FieldIdx: " << fieldIdx << " for Field: " << searched_field_name;
+    if (fullyQualifiedFieldName.compare(searched_field_type) == 0) {
+        FieldIdx fieldIdx = dex_file.GetIndexForFieldId(fieldId);
+        VLOG(artistd) << "Found FieldIdx: " << fieldIdx << " for field type " << searched_field_type;
+        return fieldIdx;
     }
   }
-  if (fieldIdx == NO_FIELD_ID_FOUND) {
-    VLOG(artistd) << "Could not find type " << searched_field_name;
-  }
-  return fieldIdx;
+  auto msg("Could not find type " + searched_field_type);
+  abort(msg);
 }
 
-int64_t ArtUtils::FindClassDefIdxFromName(const HGraph* graph, const  std::string & searched_class_name) {
+ClassDefIdx ArtUtils::FindClassDefIdxFromName(const HGraph* graph, const  std::string & searched_class_name) {
   return FindClassDefIdxFromName(graph->GetDexFile(), searched_class_name);
 }
 
-int64_t ArtUtils::FindClassDefIdxFromName(const DexFile& dex_file, const  std::string & searched_class_name) {
-  for (uint16_t i = 0; i < dex_file.NumClassDefs(); i++) {
-    const DexFile::ClassDef& def = dex_file.GetClassDef(i);
+ClassDefIdx ArtUtils::FindClassDefIdxFromName(const DexFile& dex_file, const  std::string & searched_class_name) {
+  for (uint16_t idx = 0; idx < dex_file.NumClassDefs(); idx++) {
+    const DexFile::ClassDef& def = dex_file.GetClassDef(idx);
     // get type
-    std::string className = dex_file.GetTypeDescriptor(dex_file.GetTypeId(def.class_idx_));
-    if (className.find(searched_class_name) != std::string::npos) {
-      VLOG(artistd) << "Found ClassDefId: " << i << " for class: " << searched_class_name;
-      return i;
+    std::string class_name = dex_file.GetTypeDescriptor(dex_file.GetTypeId(def.class_idx_));
+    VLOG(artistd) << "DEBUG comparing candidate " << class_name << " to searched " << searched_class_name;
+    if (class_name.find(searched_class_name) != std::string::npos) {
+      VLOG(artistd) << "Found ClassDefId: " << idx << " for class: " << searched_class_name;
+      return idx;
     }
   }
-  VLOG(artistd) << "Could not find ClassDefId for class: " << searched_class_name;
-  return NO_CLASS_DEF_IDX_FOUND;
+  auto msg("Could not find ClassDefId for class: " + searched_class_name);
+  abort(msg);
 }
 
 void ArtUtils::DumpTypes(const HGraph* graph) {
@@ -218,8 +200,7 @@ HInstruction* ArtUtils::InjectCodeLib(const HInstruction* instruction_cursor,
     injection_cursor = const_cast<HInstruction*>(instruction_cursor);
   }
 
-  const std::string dex_file_name = ArtUtils::GetDexFileName(graph);
-
+  const CodelibSymbols* symbols = env->getCodelibSymbols(&graph->GetDexFile());
 
   HBasicBlock* injectionBlock = injection_cursor->GetBlock();
 
@@ -228,58 +209,65 @@ HInstruction* ArtUtils::InjectCodeLib(const HInstruction* instruction_cursor,
 #ifdef BUILD_MARSHMALLOW
 
   HLoadClass* loadClassCodeLib = new(allocator) HLoadClass(
-  codeLib.GetTypeIdxCodeLib(dex_file_name)
+  symbols->getTypeIdx()
   , false
   , 0);
 
 #else
   HLoadClass* loadClassCodeLib = new(allocator) HLoadClass(
       graph->GetCurrentMethod(),
-      env->GetTypeIdxCodeLib(dex_file_name),
+      symbols->getTypeIdx(),
       graph->GetDexFile(),
       false,
       0,
-      true,    // seems to be of no influence, but we also add a manual CLinitcheck in both cases.
+      true,    // seems to have no influence, but we also add a manual CLinitcheck in both cases.
       false);  // must be false, crashes otherwise
 
 #endif
+
   injectionBlock->InsertInstructionBefore(loadClassCodeLib, injection_cursor);
+
+
 
   HClinitCheck* clInitCheckCodelib = new(allocator) HClinitCheck(loadClassCodeLib, 0);
   injectionBlock->InsertInstructionAfter(clInitCheckCodelib, loadClassCodeLib);
   HInstruction* return_cursor = clInitCheckCodelib;
 
-  #ifdef BUILD_MARSHMALLOW
-    const bool IS_VOLATILE = false;
+  const bool IS_VOLATILE = false;
+  const DexFile& codelib_dexfile(*env->getDexFile());
+
+#ifdef BUILD_MARSHMALLOW
     HStaticFieldGet* getFieldInstance = new(allocator) HStaticFieldGet(clInitCheckCodelib,
                                                                        Primitive::Type::kPrimNot,
                                                                        codeLib.GetInstanceField(codeLib.GetCodeLibDexFileName()),
                                                                        IS_VOLATILE);
-  #else
-    const bool IS_VOLATILE = false;
-    // Getting the dexCache;
-    // ScopedObjectAccess include locking the mutator lock
-    ScopedObjectAccess soa(Thread::Current());
-    StackHandleScope<1> hs(soa.Self());
-    ClassLinker* class_linker = Runtime::Current()->GetClassLinker();
+#else
+  // Getting the dexCache;
+  // ScopedObjectAccess includes locking the mutator lock
+  ScopedObjectAccess soa(Thread::Current());
+  StackHandleScope<1> hs(soa.Self());
+  ClassLinker* class_linker = Runtime::Current()->GetClassLinker();
 
-    const string& code_lib_dexname = env->GetCodeLibDexFileName();
 
-    Handle<mirror::DexCache> codelib_dex_cache(
-        hs.NewHandle(
-            class_linker->FindDexCache(
-                Thread::Current(), *env->GetCodeLibDexFile(), false)));
+  Handle<mirror::DexCache> codelib_dex_cache(
+          hs.NewHandle(
+                  class_linker->FindDexCache(
+                          Thread::Current(), codelib_dexfile, false)));
 
-    HStaticFieldGet* getFieldInstance = new(allocator) HStaticFieldGet(clInitCheckCodelib,
+
+  FieldIdx field_idx = env->getInstanceFieldIdx();
+  MemberOffset field_offset = env->getInstanceFieldOffset();
+  HStaticFieldGet* getFieldInstance = new(allocator) HStaticFieldGet(clInitCheckCodelib,
                                                                        Primitive::Type::kPrimNot,
-                                                                       env->GetInstanceField(code_lib_dexname),
+                                                                       field_offset,
                                                                        IS_VOLATILE,
-                                                                       env->GetInstanceFieldIdx(code_lib_dexname),
-                                                                       env->GetClassDefIdxCodeLib(code_lib_dexname),
-                                                                       *env->GetDexFile(code_lib_dexname),
+                                                                       field_idx,
+                                                                       env->getClassDefIdx(),
+                                                                       codelib_dexfile,
                                                                        codelib_dex_cache,
                                                                        0);
-  #endif
+#endif
+
     VLOG(artistd) << "ArtUtils::InjectCodeLib getFieldInstance: " << getFieldInstance
                   << " Needs Env: " << getFieldInstance->GetEnvironment();
     injectionBlock->InsertInstructionAfter(getFieldInstance, clInitCheckCodelib);
@@ -295,7 +283,7 @@ HInstruction* ArtUtils::InjectMethodCall(HInstruction* instruction_cursor,
                                 const std::string& method_signature,
                                 std::vector<HInstruction*>& function_params,
                                 CodeLibEnvironment* env,
-                                const Primitive::Type returnType,
+                                const Primitive::Type return_type,
                                 const bool inject_before) {
   CHECK(env != nullptr);
   VLOG(artistd) << "ArtUtils::InjectMethodCall() Params : "
@@ -316,15 +304,17 @@ HInstruction* ArtUtils::InjectMethodCall(HInstruction* instruction_cursor,
   HBasicBlock* entryBlock = firstBlockCursor->GetBlock();
   CHECK(entryBlock != nullptr);
 
+  const DexFile& current = graph->GetDexFile();
+  const CodelibSymbols* symbols = env->getCodelibSymbols(&current);
   const uint32_t DEX_PC = 0;
 
   // VTableIndex
   HInvokeVirtual* invokeInstruction = new (allocator) HInvokeVirtual(allocator,
-                                                                     function_params.size(),
-                                                                     returnType,
+                                                                     (uint32_t) function_params.size(),
+                                                                     return_type,
                                                                      DEX_PC,
-                                                                     env->GetMethodDexfileIdx(dex_file_name, method_signature),
-                                                                     env->GetMethodVtableIdx(env->GetCodeLibDexFileName(), method_signature));
+                                                                     symbols->getMethodIdx(method_signature),
+                                                                     (uint32_t) env->getMethodVtableIdx(method_signature));
 
   ArtUtils::SetupInstructionArguments(invokeInstruction, function_params);
 
@@ -335,7 +325,7 @@ HInstruction* ArtUtils::InjectMethodCall(HInstruction* instruction_cursor,
     instructionBlock->InsertInstructionAfter(invokeInstruction, instruction_cursor);
   }
   VLOG(artistd) << "ArtUtils::InjectMethodCall: " << invokeInstruction;
-  VLOG(artistd) << "ArtUtils::InjectMethodCall SUCCESS: " << method_signature;
+  VLOG(artist) << "ArtUtils::InjectMethodCall SUCCESS: " << method_signature;
 
   return invokeInstruction;
 }
@@ -356,6 +346,10 @@ std::string ArtUtils::GetMethodSignature(const HInvoke* invoke) {
   const std::string fully_qualified_method_name = (method_class + method_name + method_signature);
 
   return fully_qualified_method_name;
+}
+
+std::string ArtUtils::GetFieldName(const HStaticFieldGet* get, bool signature) {
+    return PrettyField(get->GetFieldInfo().GetFieldIndex(), get->GetBlock()->GetGraph()->GetDexFile(), signature);
 }
 
 std::string ArtUtils::GetDexFileName(const HGraph* graph) {
@@ -649,5 +643,12 @@ void ArtUtils::InitializeInstruction(HInstruction* instruction, HInstruction* pr
     instruction->SetRawEnvironment(newEnvironment);
   }
 }
+
+void ArtUtils::abort(string &reason) {
+    VLOG(artist) << "ERROR: Aborting compilation due to error in ARTist: " << reason;
+    VLOG(artist).flush();
+    terminate();
+}
+
 #endif
 }  // namespace art

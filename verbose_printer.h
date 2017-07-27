@@ -42,6 +42,7 @@ namespace art {
     void VisitInvokeVirtual(HInvokeVirtual* instruction) OVERRIDE;
     void VisitInvokeStaticOrDirect(HInvokeStaticOrDirect* instruction) OVERRIDE;
     void VisitInvokeInterface(HInvokeInterface* instruction) OVERRIDE;
+    void VisitStaticFieldGet(HStaticFieldGet* instruction) OVERRIDE;
     void VisitIntConstant(HIntConstant* instruction) OVERRIDE;
     void VisitLongConstant(HLongConstant* instruction) OVERRIDE;
     void PrintPostInstruction(HInstruction* instruction);

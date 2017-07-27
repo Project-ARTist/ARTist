@@ -27,35 +27,20 @@
 
 namespace art {
 
-  // map<uint32_t, const MethodInfo*> MethodInfoFactory::methodInfos;
+const MethodInfo* MethodInfoFactory::Obtain(HGraph* methodGraph, const DexCompilationUnit& compUnit) {
+  MethodInfo* info = new MethodInfo(methodGraph, compUnit);
 
+  string signature_string = methodGraph->GetDexFile().GetMethodSignature(
+      methodGraph->GetDexFile().GetMethodId(methodGraph->GetMethodIdx())).ToString();
 
-  const MethodInfo* MethodInfoFactory::Obtain(HGraph* methodGraph, const DexCompilationUnit& compUnit) {
-    //        auto iter = methodInfos.find(methodGraph->GetMethodIdx());
-    //        if (iter != methodInfos.end()) {
-    //            return iter->second;
-    //        }
+  ParamFinder visitor(methodGraph);
+  visitor.VisitReversePostOrder();
 
-    MethodInfo* info = new MethodInfo(methodGraph, compUnit);
+  // searching method parameters
+  info->params = visitor.GetFoundParameters();
+  ArtUtils::ExtractMethodArguments(signature_string, info->paramTypes);
 
-    string signature_string = methodGraph->GetDexFile().GetMethodSignature(
-        methodGraph->GetDexFile().GetMethodId(methodGraph->GetMethodIdx())).ToString();
+  return info;
+}
 
-    ParamFinder visitor(methodGraph);
-    visitor.VisitReversePostOrder();
-
-    // preparing the params
-    info->params = visitor.GetFoundParameters();
-      ArtUtils::ExtractMethodArguments(signature_string, info->paramTypes);
-
-    // methodInfos[methodGraph->GetMethodIdx()] = info;
-    return info;
-  }
-// const MethodInfo* MethodInfoFactory::GetCached(HGraph* methodGraph) {
-//  auto iter = methodInfos.find(methodGraph->GetMethodIdx());
-//  if (iter != methodInfos.end()) {
-//    return iter->second;
-//  }
-//  return nullptr;
-// }
 };  // namespace art

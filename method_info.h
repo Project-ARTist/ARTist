@@ -28,8 +28,6 @@
 #include "optimizing/nodes.h"
 #include "driver/dex_compilation_unit.h"
 #include "artist_utils.h"
-// #include "method_info_factory.h"
-
 
 using std::string;
 using std::vector;
@@ -37,32 +35,35 @@ using std::shared_ptr;
 
 namespace art {
 
+/**
+ * Wraps information about and convenience methods to work with the current method.
+ */
+class MethodInfo {
+ public:
+  MethodInfo(HGraph* methodGraph, const DexCompilationUnit& compUnit);
 
-  class MethodInfo {
-  public:
-    MethodInfo(HGraph* methodGraph, const DexCompilationUnit& compUnit);
+  // method
+  const string& GetMethodName(bool signature = false) const;
+  bool IsStatic() const;
+  HGraph* GetGraph() const;
 
-    // method
-    const string& GetMethodName(bool signature = false) const;
-    bool IsStatic() const;
-    HGraph* GetGraph() const;
+  // parameters
+  const vector<HParameterValue*>& GetParams() const;
+  const vector<string>& GetParamTypes() const;
+  bool IsStringParam(HParameterValue* param) const;
+  bool IsThisParameter(HParameterValue* param) const;
 
-    // parameters
-    const vector<HParameterValue*>& GetParams() const;
-    const vector<string>& GetParamTypes() const;
-    bool IsStringParam(HParameterValue* param) const;
-    bool IsThisParameter(HParameterValue* param) const;
+ private:
+  HGraph* graph;
+  const DexCompilationUnit& compilationUnit;
+  const string methodName;
+  const string methodNameWithSignature;
+  vector<HParameterValue*> params;
+  vector<string> paramTypes;
 
-   private:
-    HGraph* graph;
-    const DexCompilationUnit& compilationUnit;
-    const string methodName;
-    const string methodNameWithSignature;
-    vector<HParameterValue*> params;
-    vector<string> paramTypes;
+  friend class MethodInfoFactory;
+};
 
-    friend class MethodInfoFactory;
-  };
 }  // namespace art
 
 #endif  // ART_METHOD_INFO_H_

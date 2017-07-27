@@ -22,54 +22,60 @@
 #ifndef ART_MODULES_MODULE_MANAGER_H_
 #define ART_MODULES_MODULE_MANAGER_H_
 
+#include <atomic>
+
 #include "module.h"
 #include "optimizing/artist/env/codelib_environment.h"
+#include "optimizing/artist/artist_typedefs.h"
+
 
 using std::map;
 using std::vector;
+using std::atomic_bool;
 
 namespace art {
 
-// TODO thread-safety: synchronization/locking
+// TODO thread-safety: think about where or if synchronization/locking is needed?
 // TODO find the right place for creating and storing the environment
+/**
+ * Manages ARTist modules and provides access to their codelib environments.
+ * After all the modules have been registered, ``initializeModules`` needs to be called.
+ *
+ * The singleton pattern is used because we need easy and shared access to the modules and corresponding environments
+ * in the threads that compile all app methods.
+ */
 class ModuleManager {
 // singleton logic
  public:
-    static ModuleManager* getInstance() {
-        // Automated creation and destruction through `static` modifier.
-        static ModuleManager instance;
-        return &instance;
-    }
+    static ModuleManager* getInstance();
 
     explicit ModuleManager(ModuleManager const&) = delete;
     void operator=(ModuleManager const&)  = delete;
 
  private:
-    ModuleManager() {}
-    ~ModuleManager() {
-        // unlink and delete modules and environments
-        for (auto pair : modules) {
-            modules.erase(pair.first);
-            delete pair.second;
-        }
-        for (auto pair : modules) {
-            environments.erase(pair.first);
-            delete pair.second;
-        }
-    }
+    ModuleManager() : init_flag(false) {}
+    ~ModuleManager();
+
+    bool definesClass(const DexFile* dexfile, const MethodSignature searched_signature) const;
 
 // regular logic
  public:
-    bool registerModule(const string id, const Module* module);
+    bool registerModule(ModuleId id, const Module* module);
 
-    const Module* getModule(const string id) const;
-    CodeLibEnvironment* getCodeLibEnvironment(const string id);
+    const Module* getModule(ModuleId id) const;
+    const DexfileEnvironment* getDexFileEnvironment() const;
+    CodeLibEnvironment* getCodelibEnvironment(ModuleId id) const;
 
-    vector<const Module*>* getModules() const;
+    const map<ModuleId, const Module*> getModules() const;
+
+    void initializeModules(DexfileEnvironment* dexfile_env, jobject jclass_loader);
+    bool initialized() const;
 
  private:
-    map<const string, const Module*> modules;
-    map<const string, CodeLibEnvironment*> environments;
+    atomic_bool init_flag;
+    map<ModuleId, const Module*> _modules;
+    DexfileEnvironment* _dexfile_env;
+    map<ModuleId, CodeLibEnvironment*> _environments;
 };
 
 }  // namespace art

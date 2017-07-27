@@ -28,18 +28,17 @@
 
 namespace art {
 
-  using std::map;
+using std::map;
 
-  class MethodInfo;
+class MethodInfo;
 
-  class MethodInfoFactory {
-  public:
-    static const MethodInfo* Obtain(HGraph* methodGraph, const DexCompilationUnit& compUnit);
-    // static const MethodInfo* GetCached(HGraph* methodGraph);
-  private:
-    // methodIdx -> MethodInfo
-    // static map<uint32_t, const MethodInfo*> methodInfos;
-  };
+/**
+ * Creates method info objects for method graphs.
+ */
+class MethodInfoFactory {
+ public:
+  static const MethodInfo* Obtain(HGraph* methodGraph, const DexCompilationUnit& compUnit);
+};
 
 }  // namespace art
 

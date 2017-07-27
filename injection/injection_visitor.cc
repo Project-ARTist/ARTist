@@ -20,6 +20,7 @@
  *
  */
 
+#include "optimizing/artist/verbose_printer.h"
 #include "optimizing/artist/artist.h"
 #include "injection_visitor.h"
 #include "optimizing/artist/artist_utils.h"
@@ -37,17 +38,17 @@ HInjectionVisitor::HInjectionVisitor(HUniversalArtist* parentArtist,
     , graph(method_graph) {
   DCHECK(artist != nullptr);
   DCHECK(graph != nullptr);
-  VLOG(artistd) << "HInjectionVisitor() Injections# " << artist->GetInjections().size();
+  VLOG(artistd) << "HInjectionVisitor() Injections # " << artist->GetInjections().size();
 }
 
 void HInjectionVisitor::InjectInstruction(HInstruction* instruction, const Injection& injection) {
   DCHECK(instruction != nullptr);
   VLOG(artistd) << "HInjectionVisitor::InjectInstruction() instruction: " << instruction << std::flush;
-  VLOG(artistd) << "HInjectionVisitor::InjectInstruction() injection:   " << &injection<< std::flush;
+//  VLOG(artist) << "HInjectionVisitor::InjectInstruction() injection:   " << &injection<< std::flush;
 
   // ParameterFactory for creating primitives / objects
   VLOG(artistd) << "HInjectionVisitor::InjectInstruction() ParameterCount: " << injection.GetParameters().size();
-  VLOG(artistd) << "HInjectionVisitor::InjectInstruction() TargetCount:    " << injection.GetInjectionTargets().size();
+//  VLOG(artist) << "HInjectionVisitor::InjectInstruction() TargetCount:    " << injection.GetInjectionTargets().size();
 
   int32_t parameter_count = 0;
   for (auto && parameter : injection.GetParameters()) {
@@ -90,7 +91,8 @@ void HInjectionVisitor::InjectInstruction(HInstruction* instruction, const Injec
       // Inject only if it's not been injected, reuse first injection.
       HInstruction* injection_lib;
 
-      injection_lib = artist->GetCodeLib();
+      injection_lib = artist->GetCodeLibInstruction();
+
       std::vector<HInstruction*> function_params;
       function_params.push_back(injection_lib);
 
@@ -108,6 +110,10 @@ void HInjectionVisitor::InjectInstruction(HInstruction* instruction, const Injec
                                  artist->getCodeLibEnvironment(),
                                  Primitive::Type::kPrimVoid,
                                  true);
+
+      VerbosePrinter vpp(artist->GetMethodInfo());
+      vpp.VisitReversePostOrder();
+      VLOG(artist) << vpp.str();
 
     } else {
       VLOG(artistd) << "HInjectionVisitor::InjectInstruction() Signature Fail! HAVE:   " << check_signature << std::endl
@@ -156,10 +162,9 @@ bool HInjectionVisitor::MethodSignatureStartsWith(const std::string& method_sign
   if (method_signature.substr(0, search_string.size()) == search_string) {
     VLOG(artistd) << search_string << " is start of " << method_signature << std::endl;
     return true;
-  } else {
-    VLOG(artistd) << search_string << " NOT start of " << method_signature;
-    return false;
   }
+  VLOG(artistd) << search_string << " NOT start of " << method_signature;
+  return false;
 }
 
 /**

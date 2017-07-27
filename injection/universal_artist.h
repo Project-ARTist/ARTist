@@ -27,6 +27,12 @@
 
 namespace art {
 
+/**
+ * Special kind of ARTist passes that allows for easy injection of method calls by simply declaring an injection policy.
+ * Universal artist passes only need to overwrite a single method to declare what method calls should be injected
+ * where and when.
+ * This is well suited to build, e.g., inline reference monitors or logging modules where code is only added.
+ */
 class HUniversalArtist : public HArtist {
  public:
   HUniversalArtist(
@@ -47,23 +53,26 @@ class HUniversalArtist : public HArtist {
     // Nothing
   }
 
-  // module interface
+  // artist module interface
   void SetupModule() OVERRIDE;
   void RunModule() OVERRIDE;
 
-  // injection-specifics
   const std::vector<Injection>& GetInjections();
   const std::unordered_map<std::string, std::vector<Injection>>& GetInjectionTable();
   const std::vector<Injection> GetInjectionTableEntry(const std::string& callback_key);
   bool EmplaceTableEntry(const std::string& callback_key, const Injection& single_injection);
 
  protected:
-  // injection module interface, is only called once
+  /**
+   * Provides a list of configurations that governs the process of injecting method calls.
+   * This method defines what method calls the concrete module is injection and where.
+   *
+   * @return list of injection policies
+   */
   virtual std::vector<Injection>& ProvideInjections() const = 0;
 
  private:
   void SetupInjections();
-  // injection-specifics
   std::vector<Injection> injections;
 
   // Use @see VisitorKeys

@@ -23,8 +23,6 @@
 #include <iomanip>
 
 #include "class_linker.h"
-#include "class_linker-inl.h"
-#include "driver/dex_compilation_unit.h"
 #include "driver/compiler_driver-inl.h"
 
 #include "codelib_environment.h"
@@ -33,330 +31,171 @@
 
 namespace art {
 
-// Methods
+// codelib will be deleted in destructor
+CodeLibEnvironment::CodeLibEnvironment(const DexfileEnvironment *dexfile_env,
+                                       const DexFile *codelib_dex_file, const CodeLib *codelib,
+                                       jobject jclass_loader)
+        : _codelib_dex(codelib_dex_file), _codelib(codelib), _jclass_loader(jclass_loader), _instance_offset(art::MemberOffset(0)) {
+  for (auto dex_file : dexfile_env->getAppDexFiles()) {
+      auto symbols = new CodelibSymbols(dex_file, codelib, jclass_loader);
+      _symbols[dex_file] = symbols;
+  }
 
-// TODO
-void CodeLibEnvironment::PreInitializeEnvironmentCodeLib(jobject class_loader,
-                                                         const std::vector<const DexFile *>& dex_files) {
-  VLOG(artistd) << "PreInitializeEnvironmentCodeLib()";
-// TODO make it compile until refactoring is finished
-//  CodeLibEnvironment::GetInstance().SetDexFiles(dex_files);
+  Locks::mutator_lock_->SharedLock(Thread::Current());
+#ifdef BUILD_MARSHMALLOW
+  // mutex is released in destructor
+  ReaderMutexLock mu(Thread::Current(), *class_linker->DexLock());
+#endif
 
-//  CodeLibEnvironment& env = CodeLibEnvironment::GetInstance();
-  CodeLibEnvironment env(nullptr);
-  for (auto && dexFile : dex_files) {
-    VLOG(artistd) << "PreInitializeEnvironmentCodeLib() DexFile: " << dexFile->GetLocation();
-    env.SetupEnvironment(dex_files, dexFile->GetLocation(), *dexFile, class_loader);
-    VLOG(artistd) << "PreInitializeEnvironmentCodeLib() DexFile: " << dexFile->GetLocation() << " DONE";
-    VLOG(artistd) << "PreInitializeEnvironmentCodeLib() CodeLibDexFile : " << env.GetCodeLibDexFileName();
-    if (dexFile->GetLocation().compare(env.GetCodeLibDexFileName()) == 0) {
-      VLOG(artistd) << "PreInitializeEnvironmentCodeLib() FOUND CodeLib: " << dexFile
-                                                                           << " (" << dexFile->GetLocation() << ")";
-      env.SetCodeLibDexFile(dexFile);
-    } else {
-      VLOG(artistd) << "PreInitializeEnvironmentCodeLib() NOT CODELIB: " << dexFile->GetLocation();
-    }
+  // init _class_linker
+  _class_linker = Runtime::Current()->GetClassLinker();
+
+  // init class loader
+  ScopedObjectAccess soa(Thread::Current());
+  StackHandleScope<2> hs(soa.Self());
+  _class_loader = hs.NewHandle(soa.Decode<mirror::ClassLoader*>(_jclass_loader));
+
+  Locks::mutator_lock_->SharedUnlock(Thread::Current());
+
+  // init class def index
+  _cld_idx = ArtUtils::FindClassDefIdxFromName(*codelib_dex_file, codelib->getCodeClass());
+
+  // init type index
+  _type_idx = ArtUtils::FindTypeIdxFromName(*codelib_dex_file, _codelib->getCodeClass());
+
+  // init singleton instance field index
+  _instance_idx = ArtUtils::FindFieldIdxFromName(*codelib_dex_file, _codelib->getInstanceField());
+}
+
+CodeLibEnvironment::~CodeLibEnvironment() {
+  delete _codelib;
+  for (auto it : _symbols) {
+      delete it.second;
   }
 }
 
-/** Sets up the injecton environment, probes methodIds and more.
- *
- */
-void CodeLibEnvironment::SetupEnvironment(const std::vector<const DexFile*>& dex_files,
-                                          const std::string& dex_name,
-                                          const DexFile& dex_file,
-                                          jobject jclass_loader) {
-  // Checking Once
-  LockSetup();
+const DexFile* CodeLibEnvironment::getDexFile() const {
+  return _codelib_dex;
+}
 
-  static std::atomic_flag setup_base_ready = ATOMIC_FLAG_INIT;
-
-  if (!setup_base_ready.test_and_set()) {
-    VLOG(artistd) << "SetupEnvironment() Basic";
-    // Get all existing dexfiles
-    ClassLinker* class_linker = Runtime::Current()->GetClassLinker();
-    Locks::mutator_lock_->SharedLock(Thread::Current());
-    ReaderMutexLock mu(Thread::Current(), *class_linker->DexLock());
-    const size_t dex_file_count_total = class_linker->GetDexCacheCount();
-    Locks::mutator_lock_->SharedUnlock(Thread::Current());
-
-    const std::vector<const DexFile*> dexfiles_classpath = Runtime::Current()->GetClassLinker()->GetBootClassPath();
-    this->SetDexFileCountClassPath(dexfiles_classpath.size());
-
-    const size_t boot_classpath_dex_file_count = dexfiles_classpath.size();
-    const size_t dexfile_count_apk = dex_file_count_total - boot_classpath_dex_file_count;
-
-    VLOG(artistd) << "CodeLibEnvironment::SetupEnvironment() DexFiles Boot Classpath #" << boot_classpath_dex_file_count;
-    VLOG(artistd) << "CodeLibEnvironment::SetupEnvironment() DexFiles Dexcache       #" << dex_file_count_total;
-
-    PreInitializeDexfileEnv(dex_name, dexfiles_classpath, dexfile_count_apk, dex_file_count_total);
-
-    VLOG(artistd) << "SetupEnvironment() Basic DONE";
-  } else {
-    VLOG(artistd) << "SetupEnvironment() Basic WAS DONE";
+const CodelibSymbols* CodeLibEnvironment::getCodelibSymbols(const DexFile* dex_file) const {
+  auto result = _symbols.find(dex_file);
+  if (result == _symbols.end()) {
+      return nullptr;
   }
-  const uint32_t& dex_index = dex_name_number_map.at(dex_name);
+  return result->second;
+}
 
-  if (!this->env_setup_ready[dex_index].test_and_set()) {
-    VLOG(artistd) << "SetupEnvironment() DexFile: " << dex_name << " index: " << dex_index;
+ClassDefIdx CodeLibEnvironment::getClassDefIdx() const {
+  return _cld_idx;
+}
 
-    ClassLinker* class_linker = Runtime::Current()->GetClassLinker();
+TypeIdx CodeLibEnvironment::getTypeIdx() const {
+  return _type_idx;
+}
 
-    VLOG(artistd) << "SetupEnvironment(): ArtUtils::FindTypeIdxFromName()";
-    const int64_t codelib_type_id =
-        ArtUtils::FindTypeIdxFromName(dex_file, _codeLib->getCodeClass());
-    if (codelib_type_id == ArtUtils::NO_TYPE_ID_FOUND) {
-      ArtUtils::DumpTypes(dex_file);
-      VLOG(artist) << "SetupEnvironment() Could not find Codelib DexFile: " << dex_name << " index: " << dex_index;
-      VLOG(artist) << "CodeLib is not available";
-      this->code_lib_available = false;
-      UnlockSetup();
-      return;
-    }
-    const uint32_t code_lib_type_idx = dex_file.GetIndexForTypeId(dex_file.GetTypeId(codelib_type_id));
-    VLOG(artistd) << "SetupEnvironment(): ->SetTypeIdxCodeLib()";
-    this->SetTypeIdxCodeLib(dex_name, code_lib_type_idx);
+FieldIdx CodeLibEnvironment::getInstanceFieldIdx() const {
+  return _instance_idx;
+}
 
-    ScopedObjectAccess soa(Thread::Current());
-    StackHandleScope<2> hs(soa.Self());
-    Handle<mirror::ClassLoader> class_loader(hs.NewHandle(soa.Decode<mirror::ClassLoader*>(jclass_loader)));
+/**
+ * Provides the offset to the codelib's static singleton instance field.
+ * The offset is initialized lazily a single time so that consecutive calls will function as a pure getter.
+ *
+ * @return MemberOffset to singleton instance field.
+ */
+MemberOffset CodeLibEnvironment::getInstanceFieldOffset() {
+  // lazy init: executed only by the first thread (others are blocked) and ignored for consecutive calls.
+  call_once(offset_flag, [this]() {this->_instance_offset = this->findInstanceFieldOffset();});
+
+  // after the initial setup, this function simply returns the already computed offset
+  return _instance_offset;
+}
+
+/**
+ * Provides the index to the codelib's vtable for a given method signature.
+ * The index is initialized lazily a single time so that consecutive calls will function as a pure getter.
+ *
+ * @return vtable index for the given signature.
+ */
+MethodVtableIdx CodeLibEnvironment::getMethodVtableIdx(const MethodSignature& signature) {
+  // lazy init: executed only by the first thread (others are blocked) and ignored for consecutive calls.
+  call_once(vtable_flag, [this, signature]() {this->_method_vtable_idx[signature] = this->findMethodVtableIdx(signature);});
+
+  // after the initial setup, this function simply returns the already computed index
+  return _method_vtable_idx[signature];
+}
+
+/**
+ * Finds the offset of the codelib's static singleton instance field.
+ *
+ * @return MemberOffset to the codelib's singleton field.
+ */
+MemberOffset CodeLibEnvironment::findInstanceFieldOffset() const {
+  // init dex file cache
+  Locks::mutator_lock_->SharedLock(Thread::Current());
 #ifdef BUILD_MARSHMALLOW
-    Handle<mirror::DexCache> dex_cache(hs.NewHandle(class_linker->FindDexCache(dex_file)));
+  ReaderMutexLock mu(Thread::Current(), *class_linker->DexLock());
+#endif
+  StackHandleScope<2> hs(Thread::Current());
+
+#ifdef BUILD_MARSHMALLOW
+  auto codelib_dex_cache = hs.NewHandle(_class_linker->FindDexCache(codelib_dex_file));
 #else
-    Handle<mirror::DexCache> dex_cache(hs.NewHandle(class_linker->FindDexCache(Thread::Current(), dex_file, false)));
+  auto codelib_dex_cache = hs.NewHandle(_class_linker->FindDexCache(Thread::Current(), *_codelib_dex, false));
 #endif
 
-    VLOG(artistd) << "SetupEnvironment(): ArtUtils::FindFieldIdxFromName()";
-
-    const int64_t codelib_field_instance_idx =
-        ArtUtils::FindFieldIdxFromName(dex_file,
-                                       _codeLib->getInstanceField());
-    VLOG(artistd) << "SetupEnvironment(): FindFieldIdxFromName() Index: " << codelib_field_instance_idx;
-    SetupEnvironmentClassMemberField(dex_name,
-                                     dex_file,
-                                     class_linker,
-                                     soa,
-                                     class_loader,
-                                     dex_cache,
-                                     codelib_field_instance_idx);
-
-    VLOG(artistd) << "Setting up all methods: " << this->GetMethods().size();
-    for (auto && METHOD_SIGNATURE : this->GetMethods()) {
-      VLOG(artistd) << "SetupEnvironment(): ArtUtils::FindMethodIdx() " << METHOD_SIGNATURE;
-      const uint32_t method_idx = ArtUtils::FindMethodIdx(dex_file, METHOD_SIGNATURE);
-
-      if (method_idx == ArtUtils::NO_METHOD_IDX_FOUND) {
-        VLOG(artistd) << "Could not find DexFile methodIndex for: " << METHOD_SIGNATURE;
-        CHECK(false);
-      }
-
-      VLOG(artistd) << "SetupEnvironment(): ->SetMethodDexfileIdx() " << METHOD_SIGNATURE;
-      this->SetMethodDexfileIdx(dex_name, METHOD_SIGNATURE, method_idx);
-
-      for (auto && dexy : dex_files) {
-        if (dexy->GetLocation().compare(this->GetCodeLibDexFileName()) == 0) {
-          SetupEnvironmentMethod(dex_name,
-                                 *dexy,
-                                 class_linker,
-                                 class_loader,
-                                 dex_cache,
-                                 METHOD_SIGNATURE,
-                                 method_idx);
-        }
-      }
-    }
-    VLOG(artistd) << "SetupEnvironment() DONE";
-    VLOG(artistd) << std::endl;
+  // init instance offset
+  CHECK(_class_linker != nullptr);
+  ArtField* resolved_field = _class_linker->ResolveField(*_codelib_dex,
+                                                         _instance_idx,
+                                                         codelib_dex_cache,
+                                                         _class_loader,
+                                                         false);
+  if (resolved_field == nullptr) {
+    auto msg = "Could not resolve codelib instance field for dex file " + _codelib_dex->GetLocation();
+    ArtUtils::DumpFields(*_codelib_dex);
+    ArtUtils::abort(msg);
   } else {
-    VLOG(artistd) << "SetupEnvironment() WAS READY DexFile: " << dex_name;
+    auto result = resolved_field->GetOffset();
+    Locks::mutator_lock_->SharedUnlock(Thread::Current());
+    return result;
   }
-  UnlockSetup();
-  VLOG(artistd) << "SetupEnvironment() DONE UnLocked" << std::flush;
 }
 
-void CodeLibEnvironment::SetupEnvironmentMethod(const string& dex_name,
-                                                const DexFile& dex_file,
-                                                ClassLinker* class_linker,
-                                                const Handle <mirror::ClassLoader>& class_loader ATTRIBUTE_UNUSED,
-                                                Handle <mirror::DexCache>& dex_cache,
-                                                const std::string& METHOD_SIGNATURE,
-                                                const uint32_t method_idx) {
-  VLOG(artistd) << "SetupEnvironment(): ->GetResolvedMethod() " << METHOD_SIGNATURE;
-
-  int64_t dex_file_method_idx = ArtUtils::FindMethodIdx(dex_file, METHOD_SIGNATURE);
-  Locks::mutator_lock_->SharedLock(Thread::Current());
-  ReaderMutexLock mu(Thread::Current(), *class_linker->DexLock());
-  ArtMethod* resolved_method = dex_cache->GetResolvedMethod(dex_file_method_idx, class_linker->GetImagePointerSize());
-
-  VLOG(artistd) << "SetupEnvironment(): resolved_method: " << resolved_method;
-
-  if (resolved_method != nullptr) {
-    VLOG(artistd) << "SetupEnvironment(): ->GetVtableIndex() " << METHOD_SIGNATURE;
-    const uint32_t method_vtable_idx = resolved_method->GetVtableIndex();
-
-    VLOG(artistd) << "SetupEnvironment(): ->SharedUnlock() resolved_method:" << resolved_method;
-    VLOG(artistd) << "SetupEnvironment(): ->SetMethodVtableIdx() " << METHOD_SIGNATURE;
-    SetMethodVtableIdx(dex_name, METHOD_SIGNATURE, method_vtable_idx);
-    VLOG(artistd) << "DexFileIdx: " << method_idx
-                  << " VtableIdx: " << method_vtable_idx
-                  << " Method: " << METHOD_SIGNATURE;
-  }
-  Locks::mutator_lock_->SharedUnlock(Thread::Current());
-}
-
-void CodeLibEnvironment::SetupEnvironmentClassMemberField(const string& dex_name,
-                                                          const DexFile& dex_file,
-                                                          ClassLinker* class_linker,
-                                                          const ScopedObjectAccess& soa,
-                                                          const Handle <mirror::ClassLoader>& class_loader,
-                                                          const Handle <mirror::DexCache>& dex_cache,
-                                                          const uint32_t code_lib_field_idx) {
-  VLOG(artistd) << "SetupEnvironment(): ArtUtils::FindFieldIdxFromName() instance idx: " << code_lib_field_idx;
-  if (code_lib_field_idx == ArtUtils::NO_FIELD_ID_FOUND) {
-    ArtUtils::DumpFields(dex_file);
-    CHECK(false);
-  }
-  VLOG(artistd) << "SetupEnvironment(): ->SetInstanceFieldIdx(): " << code_lib_field_idx;
-  SetInstanceFieldIdx(dex_name, code_lib_field_idx);
-  VLOG(artistd) << "SetupEnvironment(): ResolveField()";
-  Locks::mutator_lock_->SharedLock(Thread::Current());
-#ifdef BUILD_MARSHMALLOW
-  ReaderMutexLock mu(Thread::Current(), *class_linker->DexLock());
-#endif
-  ArtField* resolved_field = class_linker->ResolveField(dex_file,
-                                                        code_lib_field_idx,
-                                                        dex_cache,
-                                                        class_loader,
-                                                        false);
-  if (UNLIKELY(resolved_field == nullptr)) {
-    // Clean up any exception left by Field resolution.
-    soa.Self()->ClearException();
-  }
-  VLOG(artistd) << "SetupEnvironment(): ResolveField() resolved_field: " << resolved_field;
-  if (resolved_field != nullptr) {
-    MemberOffset instance_field_offset = resolved_field->GetOffset();
-    VLOG(artistd) << "SetupEnvironment(): ->SetInstanceField() instance_field_offset: " << instance_field_offset.SizeValue();
-    SetInstanceField(dex_name, instance_field_offset);
-  }
-  int64_t class_def_idx = ArtUtils::FindClassDefIdxFromName(dex_file, _codeLib->getCodeClass());
-  if (class_def_idx != ArtUtils::NO_CLASS_DEF_IDX_FOUND) {
-    VLOG(artistd) << "SetupEnvironment(): FindClassDefIdxFromName ClassDef Index: " << class_def_idx;
-    SetClassDefIdxCodeLib(dex_name, class_def_idx);
-  } else {
-    VLOG(artistd) << "SetupEnvironment(): FindClassDefIdxFromName ClassDef Index: " << class_def_idx << " NOT Found";
-  }
-
-  Locks::mutator_lock_->SharedUnlock(Thread::Current());
-}
-
-/** Initializes the CodeLibEnvironment's member fields, that manages
- *  the DexFile-, Method- and other references.
+/**
+ * Finds the vtable index for a particular codelib function.
  *
- * @param dex_name
- * @param dex_files
- * @param dexfile_count_apk
- * @param dex_file_count_total
+ * @return the vtable index for the given signature.
  */
-void CodeLibEnvironment::PreInitializeDexfileEnv(const string& dex_name,
-                                                 const vector<const DexFile*>& dex_files,
-                                                 const size_t dexfile_count_apk,
-                                                 const size_t dex_file_count_total) {
-  VLOG(artistd) << "CodeLibEnvironment::PreInitializeDexfileEnv()";
+MethodVtableIdx CodeLibEnvironment::findMethodVtableIdx(const MethodSignature& signature) const {
+  #ifdef BUILD_MARSHMALLOW
+  // released in destructor
+  ReaderMutexLock mu(Thread::Current(), *class_linker->DexLock());
+  #endif
+  // get all the required objects
+  ClassLinker* class_linker = Runtime::Current()->GetClassLinker();
+  ScopedObjectAccess soa(Thread::Current());
+  StackHandleScope<2> hs(soa.Self());
+  Handle<mirror::ClassLoader> class_loader(hs.NewHandle(soa.Decode<mirror::ClassLoader*>(_jclass_loader)));
+#ifdef BUILD_MARSHMALLOW
+  Handle<mirror::DexCache> dex_cache(hs.NewHandle(class_linker->FindDexCache(*_codelib_dex)));
+#else
+  Handle<mirror::DexCache> dex_cache(hs.NewHandle(class_linker->FindDexCache(Thread::Current(), *_codelib_dex, false)));
+#endif
 
-  env_setup_ready = new std::atomic_flag[dex_file_count_total];
+  const MethodIdx method_idx = ArtUtils::FindMethodIdx(*_codelib_dex, signature);
 
-  this->SetDexFileCountApk(dexfile_count_apk);
-  const uint32_t CODE_LIB_DEX_INDEX = dexfile_count_apk - 1;
-  const std::string CODE_LIB_DEX_FILENAME = ArtUtils::GetDexName(dex_name, CODE_LIB_DEX_INDEX);
-  this->SetCodeLibDexFileName(CODE_LIB_DEX_FILENAME);
+  ArtMethod* resolved_method = dex_cache->GetResolvedMethod(method_idx, class_linker->GetImagePointerSize());
 
-  uint32_t i = 0;
-  for (auto && dexFile : dex_files) {
-      const string& dex_file_name = dexFile->GetLocation();
-      VLOG(artistd) << "#" << std::setw(2) << i << " CodeLibEnvironment::PreInitializeDexfileEnv() BASE DexFile: " << dex_file_name;
-      // initialize atomic_flag array #2
-      env_setup_ready[i].clear();
-      // initialize dexfile_number_map
-      dex_name_number_map[dex_file_name] = i;
-      ++i;
+  size_t index = 0;
+  if (resolved_method == nullptr) {
+    auto msg = "Could not resolve method " + signature + " for dex file " + _codelib_dex->GetLocation();
+    ArtUtils::abort(msg);
+  } else {
+    index = resolved_method->GetVtableIndex();
   }
-  VLOG(artistd) << "CodeLibEnvironment::PreInitializeDexfileEnv() DexFiles APK: " << dexfile_count_apk;
-  for (uint32_t j = 0; j < dexfile_count_apk; j++) {
-      string dex_namey = ArtUtils::GetDexName(dex_name, j);
-
-      env_setup_ready[i].clear();
-      // initialize dexfile_number_map
-      dex_name_number_map[dex_namey] = i;
-      VLOG(artistd) << "#" << std::setw(2) << i << " CodeLibEnvironment::PreInitializeDexfileEnv() DexFile APK: " << dex_namey;
-      ++i;
-  }
-  VLOG(artistd) << "CodeLibEnvironment::PreInitializeDexfileEnv() DONE";
+  return index;
 }
 
-
-const std::unordered_set<std::string>& CodeLibEnvironment::GetMethods() const {
-  return this->_codeLib->getMethods();
-}
-
-const std::vector<std::string> CodeLibEnvironment::GetFields() const {
-  return std::vector<std::string>();
-}
-
-uint32_t CodeLibEnvironment::GetMethodVtableIdx(const std::string& dex_name,
-                                                const std::string& method_signature) const {
-  return this->method_vtable_indexes.at(dex_name).at(method_signature);
-}
-
-void CodeLibEnvironment::SetMethodVtableIdx(const std::string& dex_name,
-                                            const std::string& method_signature,
-                                            const uint32_t vtable_idx) {
-  this->method_vtable_indexes[dex_name][method_signature] = vtable_idx;
-}
-
-const MemberOffset CodeLibEnvironment::GetInstanceField(const std::string& dex_name) const {
-  return MemberOffset(this->FIELD_INSTANCE.at(dex_name));
-}
-
-void CodeLibEnvironment::SetInstanceField(const std::string& dex_name,
-                                          const MemberOffset& class_member_offset) {
-  this->FIELD_INSTANCE[dex_name] = class_member_offset.SizeValue();
-}
-
-uint32_t CodeLibEnvironment::GetInstanceFieldIdx(const std::string& dex_name) {
-  return this->FIELD_INSTANCE_IDX.at(dex_name);
-}
-
-void CodeLibEnvironment::SetInstanceFieldIdx(const std::string& dex_name,
-                                             const uint32_t instance_field_idx) {
-  this->FIELD_INSTANCE_IDX[dex_name] = instance_field_idx;
-}
-
-uint32_t CodeLibEnvironment::GetTypeIdxCodeLib(const std::string& dex_name) const {
-  return this->type_idx_code_lib.at(dex_name);
-}
-
-void CodeLibEnvironment::SetTypeIdxCodeLib(const std::string& dex_name,
-                                           const uint32_t class_def_idx_codelib) {
-  this->type_idx_code_lib[dex_name] = class_def_idx_codelib;
-}
-
-uint32_t CodeLibEnvironment::GetClassDefIdxCodeLib(const std::string& dex_name) const {
-  return this->class_def_idx_code_lib.at(dex_name);
-}
-
-void CodeLibEnvironment::SetClassDefIdxCodeLib(const std::string& dex_name,
-                                               const uint32_t type_idx_codelib) {
-  this->class_def_idx_code_lib[dex_name] = type_idx_codelib;
-}
-
-uint32_t CodeLibEnvironment::GetMethodDexfileIdx(const std::string& dex_name,
-                                                 const std::string& method_signature) const {
-  return this->method_dexfile_idx.at(dex_name).at(method_signature);
-}
-
-void CodeLibEnvironment::SetMethodDexfileIdx(const std::string& dex_name,
-                                             const std::string& method_signature,
-                                             const uint32_t method_idx) {
-  this->method_dexfile_idx[dex_name][method_signature] = method_idx;
-}
 }  // namespace art

@@ -24,21 +24,26 @@
 #define ART_ARTIST_UTILS_H_
 
 #include <optimizing/nodes.h>
-#include "env/codelib_environment.h"
+
+#include "optimizing/artist/env/codelib_environment.h"
+#include "artist_typedefs.h"
+#include "env/codelib_symbols.h"
 
 using std::string;
+using std::runtime_error;
 using std::vector;
 using std::shared_ptr;
 
 class HGraph;
 class HInstruction;
 
+
 namespace art {
 
   class CompilerDriver;
   class DexCompilationUnit;
-
   class Injection;
+  class CodeLibEnvironment;
 
   class ArtUtils {
    public:
@@ -48,17 +53,17 @@ namespace art {
     static const DexFile::MethodId* FindMethodId(const HGraph* graph, const std::string& searched_method_name);
     static const DexFile::MethodId* FindMethodId(const DexFile& dex_file, const std::string& searched_method_name);
 
-    static int64_t FindMethodIdx(const HGraph* graph, const std::string& searched_method_name);
-    static int64_t FindMethodIdx(const DexFile& dex_file, const std::string& searched_method_name);
+    static MethodIdx FindMethodIdx(const HGraph* graph, const std::string& searched_method_name);
+    static MethodIdx FindMethodIdx(const DexFile& dex_file, const std::string& searched_method_name);
 
-    static int64_t FindTypeIdxFromName(const HGraph* graph, const std::string & searched_type_name);
-    static int64_t FindTypeIdxFromName(const DexFile& dex_file, const std::string & searched_type_name);
+    static TypeIdx FindTypeIdxFromName(const HGraph* graph, const std::string & searched_type_name);
+    static TypeIdx FindTypeIdxFromName(const DexFile& dex_file, const std::string & searched_type_name);
 
-    static int64_t FindFieldIdxFromName(const HGraph* graph, const std::string & searched_field_name);
-    static int64_t FindFieldIdxFromName(const DexFile& dex_file, const std::string & searched_field_name);
+    static FieldIdx FindFieldIdxFromName(const HGraph* graph, const std::string & searched_field_name);
+    static FieldIdx FindFieldIdxFromName(const DexFile& dex_file, const std::string & searched_field_type);
 
-    static int64_t FindClassDefIdxFromName(const HGraph* graph, const  std::string & searched_class_name);
-    static int64_t FindClassDefIdxFromName(const DexFile& dex_file, const  std::string & searched_class_name);
+    static ClassDefIdx FindClassDefIdxFromName(const HGraph* graph, const  std::string & searched_class_name);
+    static ClassDefIdx FindClassDefIdxFromName(const DexFile& dex_file, const  std::string & searched_class_name);
 
     static void DumpTypes(const HGraph* graph);
     static void DumpTypes(const DexFile& dex_file);
@@ -66,7 +71,10 @@ namespace art {
     static std::string GetMethodName(HInvoke* invoke, bool signature = false);
     static std::string GetMethodSignature(const HInvoke* invoke);
 
-    static std::string GetDexFileName(const HGraph* graph);
+    static std::string GetFieldName(const HStaticFieldGet* get, bool signature);
+
+
+        static std::string GetDexFileName(const HGraph* graph);
 
     static void DumpFields(const HGraph* graph);
     static void DumpFields(const DexFile& dex_file);
@@ -78,7 +86,7 @@ namespace art {
                                        const std::string& method_signature,
                                        std::vector<HInstruction*>& function_params,
                                        CodeLibEnvironment* env,
-                                       const Primitive::Type returnType = Primitive::Type::kPrimVoid,
+                                       const Primitive::Type return_type = Primitive::Type::kPrimVoid,
                                        const bool inject_before = true);
 
     static void ExtractMethodArguments(const std::string &signature, vector<string> &result);
@@ -91,10 +99,8 @@ namespace art {
 
     static bool IsNativeMethod(HInvoke* instruction);
 
-    static const int64_t NO_TYPE_ID_FOUND;
-    static const int64_t NO_FIELD_ID_FOUND;
-    static const uint32_t NO_METHOD_IDX_FOUND;
-    static const int64_t NO_CLASS_DEF_IDX_FOUND;
+    NO_RETURN static void abort(string &reason);
+
 
     static mirror::Class* GetClassFrom(CompilerDriver* driver, const DexCompilationUnit& compilation_unit);
 

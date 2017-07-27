@@ -27,10 +27,9 @@
 #include "blacklist.h"
 #include "injection/injection_visitor.h"
 #include "env/java_env.h"
-#include "class_linker.h"
-#include "class_linker-inl.h"
 #include "method_info_factory.h"
 #include "driver/compiler_driver.h"
+#include "optimizing/artist/env/dexfile_environment.h"
 
 #include "optimizing/builder.h"
 
@@ -62,9 +61,8 @@ HArtist::HArtist(HGraph* graph,
                     is_in_ssa_form,
 #endif
                     pass_name, stats)
-    , code_lib(nullptr)
-    , env(nullptr)
-    , methodInfo(MethodInfoFactory::Obtain(graph, _dex_compilation_unit)) {
+    , codelib_instruction(nullptr)
+    , method_info(MethodInfoFactory::Obtain(graph, _dex_compilation_unit)) {
   ArtistLog::SetupArtistLogging();
   const string& VERSION = "00109";
   LogVersionOnce(VERSION);
@@ -82,27 +80,28 @@ void HArtist::LogVersionOnce(const string& VERSION) const {
 
 HArtist::~HArtist() {
   VLOG(artistd) << "~HArtist()" << std::endl;
-  delete methodInfo;
+    delete method_info;
 }
 
 void HArtist::Run() {
   CHECK(graph_ != nullptr);
 
-  const std::string methodName = methodInfo->GetMethodName();
+  const std::string method_name = method_info->GetMethodName();
   const std::string& dexFileName = graph_->GetDexFile().GetLocation();
 
-  if (BlackList::IsBlacklisted(methodName)) {
-    VLOG(artistd) << "HArtist::Run() SKIPPING " << methodName << " (" << dexFileName << ")";;
+  if (BlackList::IsBlacklisted(method_name)) {
+    VLOG(artistd) << "HArtist::Run() SKIPPING " << method_name << " (" << dexFileName << ")";;
     return;
   }
-  if (env->IsCodeLib(graph_->GetDexFile())) {
-    VLOG(artistd) << "HArtist::Run() SKIPPING CodeLib " << methodName << " (" << dexFileName << ")";
+  VLOG(artistd) << "DEBUG: check if codelib";
+  if (_dexfile_env->isCodelib(&graph_->GetDexFile())) {
+    VLOG(artistd) << "HArtist::Run() SKIPPING CodeLib " << method_name << " (" << dexFileName << ")";
     return;
   }
   const string method_signature = PrettyMethod(graph_->GetMethodIdx(), graph_->GetDexFile());
   ArtistLog::LogMethodCount(++method_counter);
   VLOG(artistd) << std::endl;
-  VLOG(artistd) << "Artist #" << method_counter << ": " << method_signature<< " (" << dexFileName << ")";
+  VLOG(artist) << "Artist #" << method_counter << ": " << method_signature<< " (" << dexFileName << ")";
 
   Setup();
   RunModule();
@@ -117,39 +116,43 @@ void HArtist::Setup() {
 }
 
 
-HInstruction* HArtist::GetCodeLib(HInstruction* instruction_cursor) {
-  if (this->code_lib == nullptr) {
+HInstruction* HArtist::GetCodeLibInstruction(HInstruction *instruction_cursor) {
+  if (this->codelib_instruction == nullptr) {
     if (instruction_cursor == nullptr) {
-      this->code_lib = ArtUtils::InjectCodeLib(graph_->GetEntryBlock()->GetLastInstruction(), env);
+      this->codelib_instruction = ArtUtils::InjectCodeLib(graph_->GetEntryBlock()->GetLastInstruction(), _codelib_env);
     } else {
-      this->code_lib = ArtUtils::InjectCodeLib(instruction_cursor, env, false);
+      this->codelib_instruction = ArtUtils::InjectCodeLib(instruction_cursor, _codelib_env, false);
     }
   }
-  return this->code_lib;
+  return this->codelib_instruction;
 }
 
 const MethodInfo* HArtist::GetMethodInfo() const {
-  VLOG(artistd) << "HArtist::GetMethodInfo(): " << this->methodInfo << std::flush;
-  return this->methodInfo;
+  VLOG(artistd) << "HArtist::GetMethodInfo(): " << this->method_info << std::flush;
+  return this->method_info;
 }
 
 /**
- * Stub implementations that need to be overwritten by concrete modules.
+ * Stub implementation that can but does not have to be overwritten in the concrete module.
  */
 void HArtist::SetupModule() {
-  VLOG(artist) << "HArtist::SetupModule(): No-op, override this method in the concrete module. ";
+  VLOG(artistd) << "HArtist::SetupModule(): No-op.";
 }
 
-void HArtist::RunModule() {
-  VLOG(artist) << "HArtist::RunModule(): No-op, override this method in the concrete module. ";
+void HArtist::setDexfileEnvironment(const DexfileEnvironment *environment) {
+    _dexfile_env = environment;
+}
+
+const DexfileEnvironment *HArtist::getDexfileEnvironment() const {
+    return _dexfile_env;
 }
 
 void HArtist::setCodeLibEnvironment(CodeLibEnvironment *environment) {
-  this->env = environment;
+  this->_codelib_env = environment;
 }
 
-CodeLibEnvironment *HArtist::getCodeLibEnvironment() {
-  return env;
+CodeLibEnvironment* HArtist::getCodeLibEnvironment() const {
+  return _codelib_env;
 }
 
 }  // namespace art

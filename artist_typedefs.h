@@ -19,18 +19,27 @@
  *
  */
 
-#ifndef  ART_MODULES_TRACE_TRACE_MODULE_H_
-#define  ART_MODULES_TRACE_TRACE_MODULE_H_
+#ifndef ART_ARTIST_TYPEDEFS_H_
+#define ART_ARTIST_TYPEDEFS_H_
 
-#include "optimizing/artist/modules/module.h"
+#include <string>
+
+
+using std::string;
 
 namespace art {
+// modules
+typedef const string ModuleId;
 
-class TraceModule : public Module {
-    HArtist* createPass(HGraph* graph, const DexCompilationUnit& dex_compilation_unit) const OVERRIDE;
-    const CodeLib* createCodeLib() const OVERRIDE;
-};
+// indices
+typedef uint16_t ClassDefIdx;
+typedef uint16_t TypeIdx;
+typedef uint32_t FieldIdx;
+typedef uint32_t MethodIdx;
+typedef size_t MethodVtableIdx;
 
+// method signature
+typedef string MethodSignature;
 }  // namespace art
 
-#endif  // ART_MODULES_TRACE_TRACE_MODULE_H_
+#endif  // ART_ARTIST_TYPEDEFS_H_

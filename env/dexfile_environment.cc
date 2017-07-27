@@ -16,21 +16,40 @@
  * limitations under the License.
  *
  * @author "Oliver Schranz <oliver.schranz@cispa.saarland>"
+ * @author "Sebastian Weisgerber <weisgerber@cispa.saarland>"
  *
  */
 
-#ifndef  ART_MODULES_TRACE_TRACE_MODULE_H_
-#define  ART_MODULES_TRACE_TRACE_MODULE_H_
+#include <algorithm>
 
-#include "optimizing/artist/modules/module.h"
+#include "dexfile_environment.h"
+
+using std::find;
 
 namespace art {
 
-class TraceModule : public Module {
-    HArtist* createPass(HGraph* graph, const DexCompilationUnit& dex_compilation_unit) const OVERRIDE;
-    const CodeLib* createCodeLib() const OVERRIDE;
-};
+const vector<const DexFile*>& DexfileEnvironment::getAppDexFiles() const {
+    return _app_dex_files;
+}
+
+const vector<const DexFile*>& DexfileEnvironment::getCodelibDexFiles() const {
+    return *_codelibs;
+}
+
+const vector<const DexFile*>& DexfileEnvironment::getAllDexFiles() const {
+    return _all;
+}
+
+bool DexfileEnvironment::isCodelib(const DexFile* dex_file) const {
+    if (_codelibs->empty()) {
+        return false;
+    }
+    bool result = find(_codelibs->begin(), _codelibs->end(), dex_file) != _codelibs->end();
+    return result;
+}
+
+    DexfileEnvironment::~DexfileEnvironment() {
+        delete _codelibs;
+    }
 
 }  // namespace art
-
-#endif  // ART_MODULES_TRACE_TRACE_MODULE_H_

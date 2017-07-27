@@ -34,56 +34,69 @@ using std::shared_ptr;
 
 namespace art {
 
-  class HGraph;
-  class HInstruction;
-  class DexCompilationUnit;
-  class CompilerDriver;
-  class OptimizingCompilerStats;
+class HGraph;
+class HInstruction;
+class DexCompilationUnit;
+class CompilerDriver;
+class OptimizingCompilerStats;
 
+
+/**
+ * HArtist is ARTist's interface for custom "optimization passes". We exploit the Optimizing backend's optimization
+ * infrastructure to execute our own passes as if they were optimizations.
+ * An ARTist pass has full access to the current method's code and can modify it at will.
+ */
+class HArtist : public HOptimization {
+ public:
+  HArtist(HGraph *graph,
+          const DexCompilationUnit& _dex_compilation_unit,
+#ifdef BUILD_MARSHMALLOW
+          bool is_in_ssa_form = true,
+#endif
+          const char *pass_name = "ArtistInstrumentation",
+          OptimizingCompilerStats *stats = nullptr);
+
+  HInstruction* GetCodeLibInstruction(HInstruction *instruction_cursor = nullptr);
+
+  const MethodInfo* GetMethodInfo() const;
+
+  void setDexfileEnvironment(const DexfileEnvironment* environment);
+  const DexfileEnvironment* getDexfileEnvironment() const;
+
+  void setCodeLibEnvironment(CodeLibEnvironment* environment);
+  CodeLibEnvironment* getCodeLibEnvironment() const;
+
+  virtual ~HArtist();
+
+  void Run() OVERRIDE;
+
+ private:
+  HInstruction* codelib_instruction;
+  const DexfileEnvironment* _dexfile_env;
+  CodeLibEnvironment* _codelib_env;
+
+ protected:
+  const MethodInfo* method_info;
+
+  static uint32_t method_counter;
+
+ protected:
+  void LogVersionOnce(const string& VERSION) const;
+  void Setup();
+
+  // Module API
 
   /**
-   * @author "Oliver Schranz <oliver.schranz@cispa.saarland>"
-   * @author "Sebastian Weisgerber <weisgerber@cispa.saarland>"
+   * Initializes the module. Concrete modules can but do not have to overwrite this function. The default implementation
+   * is a no-op.
    */
-  class HArtist : public HOptimization {
-  public:
-    HArtist(HGraph *graph,
-            const DexCompilationUnit& _dex_compilation_unit,
-#ifdef BUILD_MARSHMALLOW
-            bool is_in_ssa_form = true,
-#endif
-            const char *pass_name = "ArtistInstrumentation",
-            OptimizingCompilerStats *stats = nullptr);
+  virtual void SetupModule();
 
-    HInstruction* GetCodeLib(HInstruction* instruction_cursor = nullptr);
-
-    const MethodInfo* GetMethodInfo() const;
-
-    void setCodeLibEnvironment(CodeLibEnvironment* environment);
-    CodeLibEnvironment* getCodeLibEnvironment();
-
-    virtual ~HArtist();
-
-    void Run() OVERRIDE;
-
-   private:  // Member Vars
-    HInstruction* code_lib;
-    CodeLibEnvironment* env;
-
-  protected:  // Member Vars
-    const MethodInfo* methodInfo;
-
-    static uint32_t method_counter;
-
-  protected:  // Member Functions
-    void LogVersionOnce(const string& VERSION) const;
-    void Setup();
-
-
-    // to be overwritten by modules
-    virtual void SetupModule();
-    virtual void RunModule();
-  };
+  /**
+   * Execute the module's actual logic. All operations that change the current method should be done here.
+   */
+  virtual void RunModule() = 0;
+};
 
 }  // namespace art
 

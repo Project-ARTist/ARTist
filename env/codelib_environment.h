@@ -23,84 +23,69 @@
 #ifndef ART_ENV_CODELIB_ENVIRONMENT_H_
 #define ART_ENV_CODELIB_ENVIRONMENT_H_
 
+#include <string>
+#include <mutex>
+
 #include "artist_environment.h"
+#include "codelib_symbols.h"
 #include "offsets.h"
 #include "codelib.h"
 #include "class_linker.h"
-#include <string>
-#include <unordered_map>
-#include <unordered_set>
+#include "dexfile_environment.h"
+#include "optimizing/artist/artist_typedefs.h"
+
+using std::map;
+using std::once_flag;
+using std::call_once;
 
 namespace art {
 
-class MemberOffset;
-
-class CodeLibEnvironment : public ArtistEnvironment {
+class CodelibSymbols;
+/**
+ * Provides information about a corresponding codelib that is needed to, e.g., inject calls to codelib methods or use
+ * its fields. It will initialize all data either in the constructor or lazily when required and then act as a pure
+ * data object.
+ */
+class CodeLibEnvironment {
  public:
-  // codelib will be deleted in destructor
-  explicit CodeLibEnvironment(const CodeLib* codeLib) : ArtistEnvironment(), _codeLib(codeLib) {}
+  explicit CodeLibEnvironment(const DexfileEnvironment* dexfile_env, const DexFile* codelib_dex_file,
+                              const CodeLib* codelib, jobject jclass_loader);
 
-  ~CodeLibEnvironment() {
-    delete this->_codeLib;
-  }
+  ~CodeLibEnvironment();
 
-  const std::unordered_set<std::string>& GetMethods() const;
-  const std::vector<std::string> GetFields() const;
+  const DexFile* getDexFile() const;
+  const CodelibSymbols* getCodelibSymbols(const DexFile* dex_file) const;
 
-  uint32_t GetMethodVtableIdx(const std::string& dex_name, const std::string& method_signature) const;
-  void SetMethodVtableIdx(const std::string& dex_name, const std::string& method_signature, const uint32_t vtable_idx);
-
-  uint32_t GetMethodDexfileIdx(const std::string& dex_name, const std::string& method_signature) const;
-  void SetMethodDexfileIdx(const std::string& dex_name, const std::string& method_signature, const uint32_t method_idx);
-
-  const MemberOffset GetInstanceField(const std::string& dex_name) const;
-  void SetInstanceField(const std::string& dex_name, const MemberOffset& class_member_offset);
-
-  uint32_t GetInstanceFieldIdx(const std::string& dex_name);
-  void SetInstanceFieldIdx(const std::string& dex_name, const uint32_t  instance_field_idx);
-
-  uint32_t GetTypeIdxCodeLib(const std::string& dex_name) const;
-  void SetTypeIdxCodeLib(const std::string& dex_name, const uint32_t class_def_idx_codelib);
-
-  uint32_t GetClassDefIdxCodeLib(const std::string& dex_name) const;
-  void SetClassDefIdxCodeLib(const std::string& dex_name, const uint32_t type_idx_codelib);
-
-
-
-
-  // TODO REFACTOR
-  static void PreInitializeEnvironmentCodeLib(jobject class_loader,
-                                              const std::vector<const DexFile *> &dex_files);
-  // TODO REFACTOR
-  virtual void SetupEnvironment(const std::vector<const DexFile*>& dex_files,
-                                const std::string& dex_name,
-                                const DexFile& dex_file,
-                                jobject jclass_loader);
-
+  ClassDefIdx getClassDefIdx() const;
+  TypeIdx getTypeIdx() const;
+  FieldIdx getInstanceFieldIdx() const;
+  MemberOffset getInstanceFieldOffset();
+  MethodVtableIdx getMethodVtableIdx(const MethodSignature& signature);
 
  private:
-  const CodeLib* _codeLib;
+  MemberOffset findInstanceFieldOffset() const;
+  MethodVtableIdx findMethodVtableIdx(const MethodSignature& signature) const;
 
-  // TODO REFACTOR
-  void PreInitializeDexfileEnv(const std::string& dex_name, const std::vector<const DexFile*>& dex_files,
-                               const size_t dexfile_count_apk, const size_t dex_file_count_total);
-  // TODO REFACTOR
-  void SetupEnvironmentClassMemberField(const std::string& dex_name,
-                                        const DexFile& dex_file,
-                                        ClassLinker* class_linker,
-                                        const ScopedObjectAccess& soa,
-                                        // StackHandleScope<2>& hs,
-                                        const Handle <mirror::ClassLoader>&,
-                                        const Handle <mirror::DexCache>& dex_cache,
-                                        const uint32_t code_lib_field_idx);
-  // TODO REFACTOR
-  void SetupEnvironmentMethod(const std::string& dex_name,
-                              const DexFile& dex_file,
-                              ClassLinker* class_linker,
-                              const Handle <mirror::ClassLoader>& class_loader,
-                              Handle <mirror::DexCache>& dex_cache,
-                              const std::string& METHOD_SIGNATURE,
-                              const uint32_t method_idx);
+ private:
+  const DexFile* _codelib_dex;
+  const CodeLib* _codelib;
+
+  // initialized in constructor
+  ClassDefIdx _cld_idx;
+  TypeIdx _type_idx;
+  FieldIdx _instance_idx;
+  jobject _jclass_loader;
+  map<const DexFile*, CodelibSymbols*> _symbols;
+  Handle<mirror::ClassLoader> _class_loader;
+  ClassLinker* _class_linker;
+
+  // lazily initialized
+  MemberOffset _instance_offset;
+  map<MethodSignature, MethodVtableIdx> _method_vtable_idx;
+
+  // lock guard flags for lazily initialized values
+  once_flag offset_flag;
+  once_flag vtable_flag;
 };
 
 }  // namespace art
