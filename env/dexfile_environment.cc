@@ -28,28 +28,46 @@ using std::find;
 
 namespace art {
 
+DexfileEnvironment::DexfileEnvironment(vector<const DexFile *> &dex_files) : _app_dex_files(dex_files), _codelibs(0),
+                                                                             _all(dex_files) {}
+
+void DexfileEnvironment::declareCodelib(const DexFile* codelib_dex_file) {
+  CHECK(codelib_dex_file != nullptr);
+  VLOG(artistd) << "declaring dex file as codelib: " << codelib_dex_file->GetLocation();
+
+  // preconditions: all dex files are known beforehand and we only, step by step, move codelib dex files over from
+  // the app dex files list
+  CHECK(find(_all.begin(), _all.end(), codelib_dex_file) != _all.end());
+
+  auto app_iter = find(_app_dex_files.begin(), _app_dex_files.end(), codelib_dex_file);
+  CHECK(app_iter != _all.end());
+  _app_dex_files.erase(app_iter);
+
+  CHECK(find(_codelibs.begin(), _codelibs.end(), codelib_dex_file) == _codelibs.end());
+  _codelibs.push_back(codelib_dex_file);
+}
+
+
 const vector<const DexFile*>& DexfileEnvironment::getAppDexFiles() const {
-    return _app_dex_files;
+  return _app_dex_files;
 }
 
 const vector<const DexFile*>& DexfileEnvironment::getCodelibDexFiles() const {
-    return *_codelibs;
+  return _codelibs;
 }
 
 const vector<const DexFile*>& DexfileEnvironment::getAllDexFiles() const {
-    return _all;
+  return _all;
 }
 
 bool DexfileEnvironment::isCodelib(const DexFile* dex_file) const {
-    if (_codelibs->empty()) {
-        return false;
-    }
-    bool result = find(_codelibs->begin(), _codelibs->end(), dex_file) != _codelibs->end();
-    return result;
+  if (_codelibs.empty()) {
+      return false;
+  }
+  bool result = find(_codelibs.begin(), _codelibs.end(), dex_file) != _codelibs.end();
+  return result;
 }
 
-    DexfileEnvironment::~DexfileEnvironment() {
-        delete _codelibs;
-    }
+DexfileEnvironment::~DexfileEnvironment() {}
 
 }  // namespace art

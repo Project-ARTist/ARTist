@@ -68,13 +68,13 @@ class ModuleManager {
 
     const map<ModuleId, const Module*> getModules() const;
 
-    void initializeModules(DexfileEnvironment* dexfile_env, jobject jclass_loader);
+    void initializeModules(vector<const DexFile*> dex_files, jobject jclass_loader);
     bool initialized() const;
 
  private:
     atomic_bool init_flag;
     map<ModuleId, const Module*> _modules;
-    DexfileEnvironment* _dexfile_env;
+    DexfileEnvironment* _dex_file_env;
     map<ModuleId, CodeLibEnvironment*> _environments;
 };
 

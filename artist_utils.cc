@@ -133,7 +133,6 @@ ClassDefIdx ArtUtils::FindClassDefIdxFromName(const DexFile& dex_file, const  st
     const DexFile::ClassDef& def = dex_file.GetClassDef(idx);
     // get type
     std::string class_name = dex_file.GetTypeDescriptor(dex_file.GetTypeId(def.class_idx_));
-    VLOG(artistd) << "DEBUG comparing candidate " << class_name << " to searched " << searched_class_name;
     if (class_name.find(searched_class_name) != std::string::npos) {
       VLOG(artistd) << "Found ClassDefId: " << idx << " for class: " << searched_class_name;
       return idx;

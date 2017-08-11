@@ -93,7 +93,6 @@ void HArtist::Run() {
     VLOG(artistd) << "HArtist::Run() SKIPPING " << method_name << " (" << dexFileName << ")";;
     return;
   }
-  VLOG(artistd) << "DEBUG: check if codelib";
   if (_dexfile_env->isCodelib(&graph_->GetDexFile())) {
     VLOG(artistd) << "HArtist::Run() SKIPPING CodeLib " << method_name << " (" << dexFileName << ")";
     return;

@@ -31,28 +31,23 @@ using std::vector;
 
 
 namespace art {
-// TODO clean up the mess with references and pointers aso
 class DexfileEnvironment {
  private:
-    vector<const DexFile*>& _app_dex_files;
-    vector<const DexFile*>* _codelibs;
+    vector<const DexFile*> _app_dex_files;
+    vector<const DexFile*> _codelibs;
     vector<const DexFile*> _all;
 
  public:
-    DexfileEnvironment(vector<const DexFile*>& app_dex_files, vector<const DexFile*>* codelib_dex_files) :
-            _app_dex_files(app_dex_files), _codelibs(codelib_dex_files) {
-        _all.reserve(_app_dex_files.size() + _codelibs->size() );
-        _all.insert(_all.end(), _app_dex_files.begin(), _app_dex_files.end() );
-        _all.insert(_all.end(), _codelibs->begin(), _codelibs->end() );
-    }
+  explicit DexfileEnvironment(vector<const DexFile*>& dex_files);
+  ~DexfileEnvironment();
 
-    ~DexfileEnvironment();
+  void declareCodelib(const DexFile* codelib_dex_file);
 
-    const vector<const DexFile*>& getAppDexFiles() const;
-    const vector<const DexFile*>& getCodelibDexFiles() const;
-    const vector<const DexFile*>& getAllDexFiles() const;
+  const vector<const DexFile*>& getAppDexFiles() const;
+  const vector<const DexFile*>& getCodelibDexFiles() const;
+  const vector<const DexFile*>& getAllDexFiles() const;
 
-    bool isCodelib(const DexFile* dex_file)const;
+  bool isCodelib(const DexFile* dex_file)const;
 };
 
 }  // namespace art

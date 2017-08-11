@@ -125,16 +125,6 @@ namespace art {
     PrintPostInstruction(invoke);
   }
 
-  void VerbosePrinter::VisitStaticFieldGet(HStaticFieldGet *instruction) {
-    PrintPreInstruction(instruction);
-//    auto field_name = ArtUtils::GetFieldName(instruction, true);
-    auto field_name = PrettyField(instruction->GetFieldInfo().GetFieldIndex(), instruction->GetBlock()->GetGraph()->GetDexFile());
-    PrintString(instruction->DebugName());
-    PrintString("DEBUG:DEBUG ");
-    PrintString(field_name.c_str());
-    PrintPostInstruction(instruction);
-  }
-
   void VerbosePrinter::PrintLong(int64_t value) {
     PrintString(StringPrintf("%" PRId64, value).c_str());
   }
