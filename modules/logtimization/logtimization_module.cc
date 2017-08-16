@@ -25,11 +25,11 @@
 namespace art {
 
 HArtist* LogtimizationModule::createPass(HGraph *graph, const DexCompilationUnit &dex_compilation_unit) const {
-    return new (graph->GetArena()) HLogtimization(graph, dex_compilation_unit);
+  return new /*(graph->GetArena())*/ HLogtimization(graph, dex_compilation_unit);
 }
 
 const CodeLib* LogtimizationModule::createCodeLib() const {
-    return nullptr;
+  return nullptr;
 }
 
 }  // namespace art

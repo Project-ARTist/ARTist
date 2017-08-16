@@ -53,8 +53,8 @@ std::vector<Injection> &HTraceArtist::ProvideInjections() const {
           TraceCodeLib::TRACELOG;
 
   std::vector<shared_ptr<Parameter>> empty_Params;
-//  Target target_all_methods(Target::GENERIC_TARGET, InjectionTarget::METHOD_END);
-  Target target_all_methods(".onCreate(", InjectionTarget::METHOD_START);
+  Target target_all_methods(Target::GENERIC_TARGET, InjectionTarget::METHOD_END);
+//  Target target_all_methods(".onCreate(", InjectionTarget::METHOD_START);
 
   Injection injection(METHOD_SIGNATURE_TRACELOG, empty_Params, target_all_methods);
   injections->push_back(injection);

@@ -27,6 +27,7 @@
 #include "env/java_env.h"
 #include "mirror/dex_cache-inl.h"
 #include "param_finder.h"
+#include "error_handler.h"
 
 #include "injection/primitives.h"
 #include "injection/boolean.h"
@@ -39,7 +40,6 @@
 #include "driver/compiler_driver.h"
 #include "driver/compiler_driver-inl.h"
 
-using std::terminate;
 
 namespace art {
 
@@ -81,7 +81,7 @@ MethodIdx ArtUtils::FindMethodIdx(const DexFile& dex_file, const std::string& se
     return dex_file.GetIndexForMethodId(*methodId);
   }
   auto msg("Could not find method idx for " + searched_method_name);
-  abort(msg);
+  ErrorHandler::abortCompilation(msg);
 }
 
 TypeIdx ArtUtils::FindTypeIdxFromName(const HGraph* graph, const std::string & searched_type_name) {
@@ -99,7 +99,7 @@ TypeIdx ArtUtils::FindTypeIdxFromName(const DexFile& dex_file, const std::string
     }
   }
   auto msg("Could not find type" + searched_type_name);
-  abort(msg);
+  ErrorHandler::abortCompilation(msg);
 }
 
 FieldIdx ArtUtils::FindFieldIdxFromName(const HGraph* graph, const std::string & searched_field_name) {
@@ -121,7 +121,7 @@ FieldIdx ArtUtils::FindFieldIdxFromName(const DexFile& dex_file, const std::stri
     }
   }
   auto msg("Could not find type " + searched_field_type);
-  abort(msg);
+  ErrorHandler::abortCompilation(msg);
 }
 
 ClassDefIdx ArtUtils::FindClassDefIdxFromName(const HGraph* graph, const  std::string & searched_class_name) {
@@ -139,7 +139,7 @@ ClassDefIdx ArtUtils::FindClassDefIdxFromName(const DexFile& dex_file, const  st
     }
   }
   auto msg("Could not find ClassDefId for class: " + searched_class_name);
-  abort(msg);
+  ErrorHandler::abortCompilation(msg);
 }
 
 void ArtUtils::DumpTypes(const HGraph* graph) {
@@ -233,16 +233,16 @@ HInstruction* ArtUtils::InjectCodeLib(const HInstruction* instruction_cursor,
   HInstruction* return_cursor = clInitCheckCodelib;
 
   const bool IS_VOLATILE = false;
-  const DexFile& codelib_dexfile(*env->getDexFile());
-
+  MemberOffset field_offset = env->getInstanceFieldOffset();
 #ifdef BUILD_MARSHMALLOW
     HStaticFieldGet* getFieldInstance = new(allocator) HStaticFieldGet(clInitCheckCodelib,
                                                                        Primitive::Type::kPrimNot,
-                                                                       codeLib.GetInstanceField(codeLib.GetCodeLibDexFileName()),
+                                                                       field_offset,
                                                                        IS_VOLATILE);
 #else
   // Getting the dexCache;
   // ScopedObjectAccess includes locking the mutator lock
+  const DexFile& codelib_dexfile(*env->getDexFile());
   ScopedObjectAccess soa(Thread::Current());
   StackHandleScope<1> hs(soa.Self());
   ClassLinker* class_linker = Runtime::Current()->GetClassLinker();
@@ -255,7 +255,6 @@ HInstruction* ArtUtils::InjectCodeLib(const HInstruction* instruction_cursor,
 
 
   FieldIdx field_idx = env->getInstanceFieldIdx();
-  MemberOffset field_offset = env->getInstanceFieldOffset();
   HStaticFieldGet* getFieldInstance = new(allocator) HStaticFieldGet(clInitCheckCodelib,
                                                                        Primitive::Type::kPrimNot,
                                                                        field_offset,
@@ -345,10 +344,6 @@ std::string ArtUtils::GetMethodSignature(const HInvoke* invoke) {
   const std::string fully_qualified_method_name = (method_class + method_name + method_signature);
 
   return fully_qualified_method_name;
-}
-
-std::string ArtUtils::GetFieldName(const HStaticFieldGet* get, bool signature) {
-    return PrettyField(get->GetFieldInfo().GetFieldIndex(), get->GetBlock()->GetGraph()->GetDexFile(), signature);
 }
 
 std::string ArtUtils::GetDexFileName(const HGraph* graph) {
@@ -641,12 +636,6 @@ void ArtUtils::InitializeInstruction(HInstruction* instruction, HInstruction* pr
     VLOG(artistd) << "ArtUtils::InitializeInstruction() SetRawEnvironment";
     instruction->SetRawEnvironment(newEnvironment);
   }
-}
-
-void ArtUtils::abort(string &reason) {
-    VLOG(artist) << "ERROR: Aborting compilation due to error in ARTist: " << reason;
-    VLOG(artist).flush();
-    terminate();
 }
 
 #endif

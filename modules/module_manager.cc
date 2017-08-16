@@ -20,6 +20,7 @@
  */
 
 #include "module_manager.h"
+#include "optimizing/artist/error_handler.h"
 
 namespace art {
 
@@ -71,7 +72,7 @@ void ModuleManager::initializeModules(vector<const DexFile*> dex_files, jobject 
   VLOG(artistd) << "ModuleManager: initializing modules ";
   if (init_flag.exchange(true)) {  // atomic check and set
       string msg = "ModuleManager: Attempting to initialize modules more than once.";
-      ArtUtils::abort(msg);
+    ErrorHandler::abortCompilation(msg);
   }
 
   _dex_file_env = new DexfileEnvironment(dex_files);
@@ -97,7 +98,7 @@ void ModuleManager::initializeModules(vector<const DexFile*> dex_files, jobject 
       }
       if (codelib_dexfile == nullptr) {
         auto msg = "Could not find dexfile defining codelib class " + signature;
-        ArtUtils::abort(msg);
+        ErrorHandler::abortCompilation(msg);
       }
       _dex_file_env->declareCodelib(codelib_dexfile);
       _environments[id] = new CodeLibEnvironment(_dex_file_env, codelib_dexfile, codelib, jclass_loader);

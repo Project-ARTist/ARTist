@@ -20,6 +20,7 @@
  */
 
 #include "codelib_symbols.h"
+#include "optimizing/artist/error_handler.h"
 
 namespace art {
 
@@ -27,17 +28,18 @@ CodelibSymbols::CodelibSymbols(const DexFile* dex_file, const CodeLib* codelib, 
         : _dex_file(dex_file) {
   // init type index
   _typeIdx = ArtUtils::FindTypeIdxFromName(*dex_file, codelib->getCodeClass());
+
+  ClassLinker* class_linker = Runtime::Current()->GetClassLinker();
 #ifdef BUILD_MARSHMALLOW
   // released in destructor
   ReaderMutexLock mu(Thread::Current(), *class_linker->DexLock());
 #endif
   // get all the required objects
-  ClassLinker* class_linker = Runtime::Current()->GetClassLinker();
   ScopedObjectAccess soa(Thread::Current());
   StackHandleScope<2> hs(soa.Self());
   Handle<mirror::ClassLoader> class_loader(hs.NewHandle(soa.Decode<mirror::ClassLoader*>(jclass_loader)));
 #ifdef BUILD_MARSHMALLOW
-  Handle<mirror::DexCache> dex_cache(hs.NewHandle(class_linker->FindDexCache(dex_file)));
+  Handle<mirror::DexCache> dex_cache(hs.NewHandle(class_linker->FindDexCache(*dex_file)));
 #else
   Handle<mirror::DexCache> dex_cache(hs.NewHandle(class_linker->FindDexCache(Thread::Current(), *dex_file, false)));
 #endif
@@ -62,7 +64,7 @@ MethodIdx CodelibSymbols::getMethodIdx(MethodSignature signature) const {
   auto result = _method_idx.find(signature);
   if (result == _method_idx.end()) {
       auto msg("CodelibSymbols: Failed obtaining method idx for signature " + signature);
-      ArtUtils::abort(msg);
+    ErrorHandler::abortCompilation(msg);
   }
   return result->second;
 }

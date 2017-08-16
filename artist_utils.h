@@ -71,9 +71,6 @@ namespace art {
     static std::string GetMethodName(HInvoke* invoke, bool signature = false);
     static std::string GetMethodSignature(const HInvoke* invoke);
 
-    static std::string GetFieldName(const HStaticFieldGet* get, bool signature);
-
-
         static std::string GetDexFileName(const HGraph* graph);
 
     static void DumpFields(const HGraph* graph);
@@ -99,9 +96,6 @@ namespace art {
 
     static bool IsNativeMethod(HInvoke* instruction);
 
-    NO_RETURN static void abort(string &reason);
-
-
     static mirror::Class* GetClassFrom(CompilerDriver* driver, const DexCompilationUnit& compilation_unit);
 
 #ifndef BUILD_MARSHMALLOW
@@ -112,6 +106,7 @@ namespace art {
 
 #endif
   };
+
 }  // namespace art
 
 #endif  // ART_ARTIST_UTILS_H_

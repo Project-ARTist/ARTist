@@ -19,18 +19,17 @@
  *
  */
 
-#ifndef ART_MODULES_LOGTIMIZATION_LOGTIMIZATION_MODULE_H_
-#define ART_MODULES_LOGTIMIZATION_LOGTIMIZATION_MODULE_H_
+#include "base/logging.h"
+#include "error_handler.h"
 
-#include "optimizing/artist/modules/module.h"
+using std::terminate;
 
 namespace art {
 
-class LogtimizationModule : public Module {
-  HArtist* createPass(HGraph* graph, const DexCompilationUnit& dex_compilation_unit) const OVERRIDE;
-  const CodeLib* createCodeLib() const OVERRIDE;
-};
+void ErrorHandler::abortCompilation(const string& reason) {
+  VLOG(artist) << "ERROR: Aborting compilation due to error in ARTist: " << reason;
+  VLOG(artist).flush();
+  terminate();
+}
 
 }  // namespace art
-
-#endif  // ART_MODULES_LOGTIMIZATION_LOGTIMIZATION_MODULE_H_

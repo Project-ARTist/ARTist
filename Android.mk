@@ -29,6 +29,7 @@ LIBART_COMPILER_SRC_FILES += \
     optimizing/artist/artist_log.cc \
     optimizing/artist/artist_method_visitor.cc \
     optimizing/artist/artist_utils.cc \
+    optimizing/artist/error_handler.cc \
     optimizing/artist/blacklist.cc \
     optimizing/artist/env/artist_environment.cc \
     optimizing/artist/env/java_env.cc \

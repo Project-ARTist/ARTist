@@ -21,13 +21,13 @@
  */
 
 #include <iomanip>
-
 #include "class_linker.h"
-#include "driver/compiler_driver-inl.h"
 
+#include "driver/compiler_driver-inl.h"
 #include "codelib_environment.h"
-#include "codelib.h"
+
 #include "optimizing/artist/artist_log.h"
+#include "optimizing/artist/error_handler.h"
 
 namespace art {
 
@@ -42,14 +42,13 @@ CodeLibEnvironment::CodeLibEnvironment(const DexfileEnvironment *dexfile_env,
   }
 
   Locks::mutator_lock_->SharedLock(Thread::Current());
-#ifdef BUILD_MARSHMALLOW
-  // mutex is released in destructor
-  ReaderMutexLock mu(Thread::Current(), *class_linker->DexLock());
-#endif
-
   // init _class_linker
   _class_linker = Runtime::Current()->GetClassLinker();
 
+#ifdef BUILD_MARSHMALLOW
+  // mutex is released in destructor
+  ReaderMutexLock mu(Thread::Current(), *_class_linker->DexLock());
+#endif
   // init class loader
   ScopedObjectAccess soa(Thread::Current());
   StackHandleScope<2> hs(soa.Self());
@@ -134,13 +133,10 @@ MethodVtableIdx CodeLibEnvironment::getMethodVtableIdx(const MethodSignature& si
 MemberOffset CodeLibEnvironment::findInstanceFieldOffset() const {
   // init dex file cache
   Locks::mutator_lock_->SharedLock(Thread::Current());
-#ifdef BUILD_MARSHMALLOW
-  ReaderMutexLock mu(Thread::Current(), *class_linker->DexLock());
-#endif
   StackHandleScope<2> hs(Thread::Current());
 
 #ifdef BUILD_MARSHMALLOW
-  auto codelib_dex_cache = hs.NewHandle(_class_linker->FindDexCache(codelib_dex_file));
+  auto codelib_dex_cache = hs.NewHandle(_class_linker->FindDexCache(*_codelib_dex));
 #else
   auto codelib_dex_cache = hs.NewHandle(_class_linker->FindDexCache(Thread::Current(), *_codelib_dex, false));
 #endif
@@ -155,7 +151,7 @@ MemberOffset CodeLibEnvironment::findInstanceFieldOffset() const {
   if (resolved_field == nullptr) {
     auto msg = "Could not resolve codelib instance field for dex file " + _codelib_dex->GetLocation();
     ArtUtils::DumpFields(*_codelib_dex);
-    ArtUtils::abort(msg);
+    ErrorHandler::abortCompilation(msg);
   } else {
     auto result = resolved_field->GetOffset();
     Locks::mutator_lock_->SharedUnlock(Thread::Current());
@@ -169,13 +165,13 @@ MemberOffset CodeLibEnvironment::findInstanceFieldOffset() const {
  * @return the vtable index for the given signature.
  */
 MethodVtableIdx CodeLibEnvironment::findMethodVtableIdx(const MethodSignature& signature) const {
-  #ifdef BUILD_MARSHMALLOW
+  ScopedObjectAccess soa(Thread::Current());
+#ifdef BUILD_MARSHMALLOW
   // released in destructor
-  ReaderMutexLock mu(Thread::Current(), *class_linker->DexLock());
-  #endif
+  ReaderMutexLock mu(Thread::Current(), *_class_linker->DexLock());
+#endif
   // get all the required objects
   ClassLinker* class_linker = Runtime::Current()->GetClassLinker();
-  ScopedObjectAccess soa(Thread::Current());
   StackHandleScope<2> hs(soa.Self());
   Handle<mirror::ClassLoader> class_loader(hs.NewHandle(soa.Decode<mirror::ClassLoader*>(_jclass_loader)));
 #ifdef BUILD_MARSHMALLOW
@@ -191,7 +187,7 @@ MethodVtableIdx CodeLibEnvironment::findMethodVtableIdx(const MethodSignature& s
   size_t index = 0;
   if (resolved_method == nullptr) {
     auto msg = "Could not resolve method " + signature + " for dex file " + _codelib_dex->GetLocation();
-    ArtUtils::abort(msg);
+    ErrorHandler::abortCompilation(msg);
   } else {
     index = resolved_method->GetVtableIndex();
   }

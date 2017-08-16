@@ -15,22 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @author "Oliver Schranz <oliver.schranz@cispa.saarland>"
+ * @author "Sebastian Weisgerber <weisgerber@cispa.saarland>"
  *
  */
 
-#ifndef ART_MODULES_LOGTIMIZATION_LOGTIMIZATION_MODULE_H_
-#define ART_MODULES_LOGTIMIZATION_LOGTIMIZATION_MODULE_H_
+#ifndef ART_ERROR_HANDLER_H_
+#define ART_ERROR_HANDLER_H_
 
-#include "optimizing/artist/modules/module.h"
+using std::string;
 
 namespace art {
 
-class LogtimizationModule : public Module {
-  HArtist* createPass(HGraph* graph, const DexCompilationUnit& dex_compilation_unit) const OVERRIDE;
-  const CodeLib* createCodeLib() const OVERRIDE;
+class ErrorHandler {
+ public:
+  NO_RETURN static void abortCompilation(const string& reason);
 };
 
 }  // namespace art
 
-#endif  // ART_MODULES_LOGTIMIZATION_LOGTIMIZATION_MODULE_H_
+#endif  // ART_ERROR_HANDLER_H_

@@ -85,6 +85,7 @@ HArtist::~HArtist() {
 
 void HArtist::Run() {
   CHECK(graph_ != nullptr);
+  VLOG(artistd) << "HArtist::Run()";
 
   const std::string method_name = method_info->GetMethodName();
   const std::string& dexFileName = graph_->GetDexFile().GetLocation();
