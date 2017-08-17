@@ -46,7 +46,7 @@ using std::sort;
 namespace art {
 
 std::vector<Injection> &HTraceArtist::ProvideInjections() const {
-  VLOG(artist) << "HTraceArtist::ProvideInjections()";
+  VLOG(artistd) << "HTraceArtist::ProvideInjections()";
 
   std::vector<Injection>* injections = new std::vector<Injection>();    // TODO where is this deleted?
   const std::string METHOD_SIGNATURE_TRACELOG =
@@ -59,7 +59,7 @@ std::vector<Injection> &HTraceArtist::ProvideInjections() const {
   Injection injection(METHOD_SIGNATURE_TRACELOG, empty_Params, target_all_methods);
   injections->push_back(injection);
 
-  VLOG(artist) << "HTraceArtist::SetupModule(): finished setting up injections";
+  VLOG(artistd) << "HTraceArtist::SetupModule(): finished setting up injections";
   return *injections;
 }
 

@@ -110,11 +110,6 @@ void HInjectionVisitor::InjectInstruction(HInstruction* instruction, const Injec
                                  artist->getCodeLibEnvironment(),
                                  Primitive::Type::kPrimVoid,
                                  true);
-
-      VerbosePrinter vpp(artist->GetMethodInfo());
-      vpp.VisitReversePostOrder();
-      VLOG(artist) << vpp.str();
-
     } else {
       VLOG(artistd) << "HInjectionVisitor::InjectInstruction() Signature Fail! HAVE:   " << check_signature << std::endl
                     << "HInjectionVisitor::InjectInstruction() Signature Fail! TARGET: " << TARGET_SIGNATURE;

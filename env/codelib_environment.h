@@ -26,7 +26,6 @@
 #include <string>
 #include <mutex>
 
-#include "artist_environment.h"
 #include "codelib_symbols.h"
 #include "offsets.h"
 #include "codelib.h"

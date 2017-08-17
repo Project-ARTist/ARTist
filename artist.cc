@@ -64,7 +64,7 @@ HArtist::HArtist(HGraph* graph,
     , codelib_instruction(nullptr)
     , method_info(MethodInfoFactory::Obtain(graph, _dex_compilation_unit)) {
   ArtistLog::SetupArtistLogging();
-  const string& VERSION = "00109";
+  const string& VERSION = "00110";
   LogVersionOnce(VERSION);
 }
 
@@ -112,7 +112,7 @@ void HArtist::Setup() {
 
   SetupModule();
 
-  VLOG(artist) << "HArtist::Setup() Done" << std::endl;
+  VLOG(artistd) << "HArtist::Setup() Done" << std::endl;
 }
 
 

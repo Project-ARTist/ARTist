@@ -107,14 +107,13 @@ void HUniversalArtist::SetupInjections() {
 
 
 void HUniversalArtist::RunModule()  {
-//  VLOG(artist) << "RunTaskInjection()";
-
+  VLOG(artist) << "Run Module " << this->GetPassName();
   HInjectionVisitor injectionVisitor(this, graph_);
   injectionVisitor.VisitInsertionOrder();
 
   ArtistLog::LogMethod(this->method_info);
 
-  VLOG(artist) << "RunTaskInjection() DONE";
+  VLOG(artistd) << "Run Module DONE";
 }
 
 // injection-specifics

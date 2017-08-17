@@ -28,6 +28,7 @@
 #include "optimizing/artist/env/codelib_environment.h"
 #include "artist_typedefs.h"
 #include "env/codelib_symbols.h"
+#include "injection/injection.h"
 
 using std::string;
 using std::runtime_error;
