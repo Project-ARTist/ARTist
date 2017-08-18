@@ -32,7 +32,8 @@ namespace art {
  */
 class Module {
  public:
-  virtual ~Module() {}
+  virtual ~Module() = default;
+
   /**
    * Create an "optimization pass" that is executed as a part of Optimizing's optimization framework.
    *
@@ -40,14 +41,14 @@ class Module {
    * @param dex_compilation_unit
    * @return ARTist pass
    */
-  virtual HArtist* createPass(HGraph* graph, const DexCompilationUnit& dex_compilation_unit) const = 0;
+  virtual shared_ptr<HArtist> createPass(HGraph* graph, const DexCompilationUnit& dex_compilation_unit) const = 0;
 
   /**
    * Create an instance of the accompanying codelib, if any.
    *
    * @return codelib or nullptr
    */
-  virtual const CodeLib* createCodeLib() const = 0;
+  virtual shared_ptr<const CodeLib> createCodeLib() const = 0;
 };
 
 }  // namespace art

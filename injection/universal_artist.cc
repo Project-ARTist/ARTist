@@ -39,8 +39,6 @@
 
 #include "optimizing/artist/verbose_printer.h"
 
-using std::string;
-using std::vector;
 using std::shared_ptr;
 using std::endl;
 using std::sort;
@@ -61,12 +59,12 @@ void HUniversalArtist::SetupInjections() {
   int32_t targetCounter = 0;
   for (auto const & injection : this->injections) {
       VLOG(artistd) << "HUniversalArtist::SetupInjections() Method:      " << injection.GetSignature();
-      std::vector<Target> injection_targets = injection.GetInjectionTargets();
+      auto injection_targets = injection.GetInjectionTargets();
 
       VLOG(artistd) << "HUniversalArtist::SetupInjections() Local TargetCount  #" << injection_targets.size();
       // TODO Bug: Using Injection with multiple targets that have the same InjectionTarget
       //           Leads to duplicate injections
-      for (auto const & target : injection_targets) {
+      for (auto && target : injection_targets) {
           switch ((int32_t)target.GetTargetType()) {
               case InjectionTarget::METHOD_CALL_BEFORE:
                   ++targetCounter;
@@ -102,13 +100,13 @@ void HUniversalArtist::SetupInjections() {
   VLOG(artistd) << "HUniversalArtist::SetupInjections() InjectionCount Total #" << this->injections.size();
   VLOG(artistd) << "HUniversalArtist::SetupInjections() TargetCount Total    #" << targetCounter;
   VLOG(artistd) << "HUniversalArtist::SetupInjections() DONE";
-  VLOG(artistd) << std::endl;
+  VLOG(artistd) << endl;
 }
 
 
 void HUniversalArtist::RunModule()  {
   VLOG(artist) << "Run Module " << this->GetPassName();
-  HInjectionVisitor injectionVisitor(this, graph_);
+  HInjectionVisitor injectionVisitor(shared_from_this(), graph_);
   injectionVisitor.VisitInsertionOrder();
 
   ArtistLog::LogMethod(this->method_info);
@@ -118,38 +116,38 @@ void HUniversalArtist::RunModule()  {
 
 // injection-specifics
 
-const std::vector<Injection>& HUniversalArtist::GetInjections() {
+const vector<Injection>& HUniversalArtist::GetInjections() {
     VLOG(artistd) << "HUniversalArtist::GetInjections()";
     return this->injections;
 }
 
-const std::unordered_map<std::string, std::vector<Injection>>& HUniversalArtist::GetInjectionTable() {
+const unordered_map<string, vector<Injection>>& HUniversalArtist::GetInjectionTable() {
     return this->injection_table;
 }
 
-const std::vector<Injection> HUniversalArtist::GetInjectionTableEntry(const std::string& callback_key) {
+const vector<Injection> HUniversalArtist::GetInjectionTableEntry(const string& callback_key) {
     VLOG(artistd) << "HUniversalArtist::GetInjectionTableEntry()";
-    std::unordered_map<std::string, std::vector<Injection>>::const_iterator found_item =
+    unordered_map<string, vector<Injection>>::const_iterator found_item =
             this->injection_table.find(callback_key);
 
     if (found_item == this->injection_table.end()) {
-        std::vector<Injection> localInjections = std::vector<Injection>();
+        vector<Injection> localInjections = vector<Injection>();
 
         VLOG(artistd) << "HUniversalArtist::GetInjectionTableEntry() DONE: " << localInjections.size();
         return localInjections;
     } else {
-        std::vector<Injection> localInjections = this->injection_table.at(callback_key);
+        auto localInjections = this->injection_table.at(callback_key);
 
         VLOG(artistd) << "HUniversalArtist::GetInjectionTableEntry() DONE: " << localInjections.size();
         return localInjections;
     }
 }
 
-bool HUniversalArtist::EmplaceTableEntry(const std::string& callback_key,
+bool HUniversalArtist::EmplaceTableEntry(const string& callback_key,
                                            const Injection& single_injection) {
     VLOG(artistd) << "HUniversalArtist::EmplaceTableEntry()";
 
-    std::vector<Injection> new_injections = GetInjectionTableEntry(callback_key);
+    vector<Injection> new_injections = GetInjectionTableEntry(callback_key);
     VLOG(artistd) << "HUniversalArtist::EmplaceTableEntry() " << callback_key
                   << " Table Contained    # " << new_injections.size();
     new_injections.push_back(single_injection);

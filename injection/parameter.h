@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @author "Oliver Schranz <oliver.schranz@cispa.saarland>"
  * @author "Sebastian Weisgerber <weisgerber@cispa.saarland>"
  *
  */
@@ -24,6 +23,8 @@
 #define ART_INJECTION_PARAMETER_H_
 
 #include <string>
+
+using std::string;
 
 namespace art {
 
@@ -46,18 +47,20 @@ enum ParameterType { tParameter = -1,
 
 class Parameter {
  public:
-  Parameter();
-  Parameter(const Parameter& copy);
+  Parameter() = default;
+  Parameter(const Parameter& other) = default;
+  Parameter(Parameter&& other) = default;
 
-  virtual ~Parameter();
+  virtual ~Parameter() = default;
 
-  Parameter& operator= (const Parameter& other);
+  Parameter& operator= (const Parameter& other) = default;
+  Parameter& operator= (Parameter&& other) = default;
 
   virtual ParameterType GetType() const = 0;
 
-  virtual const std::string PrettyName() const;
+  virtual const string PrettyName() const;
 
-  static const std::string TypeToString(const ParameterType& paramType);
+  static const string TypeToString(const ParameterType& paramType);
 };
 
 }  // namespace art

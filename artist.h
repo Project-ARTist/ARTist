@@ -58,25 +58,23 @@ class HArtist : public HOptimization {
 
   HInstruction* GetCodeLibInstruction(HInstruction *instruction_cursor = nullptr);
 
-  const MethodInfo* GetMethodInfo() const;
+  const MethodInfo& GetMethodInfo() const;
 
-  void setDexfileEnvironment(const DexfileEnvironment* environment);
-  const DexfileEnvironment* getDexfileEnvironment() const;
+  void setDexfileEnvironment(shared_ptr<const DexfileEnvironment> environment);
+  shared_ptr<const DexfileEnvironment> getDexfileEnvironment() const;
 
-  void setCodeLibEnvironment(CodeLibEnvironment* environment);
-  CodeLibEnvironment* getCodeLibEnvironment() const;
-
-  virtual ~HArtist();
+  void setCodeLibEnvironment(shared_ptr<CodeLibEnvironment> environment);
+  shared_ptr<CodeLibEnvironment> getCodeLibEnvironment() const;
 
   void Run() OVERRIDE;
 
  private:
   HInstruction* codelib_instruction;
-  const DexfileEnvironment* _dexfile_env;
-  CodeLibEnvironment* _codelib_env;
+  shared_ptr<const DexfileEnvironment> _dexfile_env;
+  shared_ptr<CodeLibEnvironment> _codelib_env;
 
  protected:
-  const MethodInfo* method_info;
+  const MethodInfo method_info;
 
   static uint32_t method_counter;
 

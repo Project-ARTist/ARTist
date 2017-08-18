@@ -37,7 +37,7 @@ class MethodInfo;
  */
 class MethodInfoFactory {
  public:
-  static const MethodInfo* Obtain(HGraph* methodGraph, const DexCompilationUnit& compUnit);
+  static const MethodInfo obtain(HGraph *method_graph, const DexCompilationUnit &comp_unit);
 };
 
 }  // namespace art

@@ -64,6 +64,8 @@ class MethodInfo {
   friend class MethodInfoFactory;
 };
 
+ostream& operator<<(ostream& os, const MethodInfo& info);
+
 }  // namespace art
 
 #endif  // ART_METHOD_INFO_H_

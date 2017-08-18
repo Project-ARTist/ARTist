@@ -30,7 +30,7 @@ namespace art {
 
   class VerbosePrinter : public StringPrettyPrinter {
   public:
-    explicit VerbosePrinter(const MethodInfo* info);
+    explicit VerbosePrinter(const MethodInfo& info);
     explicit VerbosePrinter(HGraph* graph, const DexCompilationUnit& dex_compilation_unit);
 
     ~VerbosePrinter() {}
@@ -50,7 +50,7 @@ namespace art {
     void PrintInvoke(HInvoke* invoke);
     void PrintLong(int64_t value);
   protected:  // fields
-    const MethodInfo* methodInfo;
+    const MethodInfo methodInfo;
   };
 
 }  // namespace art

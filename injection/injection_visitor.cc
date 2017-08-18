@@ -31,10 +31,10 @@
 
 namespace art {
 
-HInjectionVisitor::HInjectionVisitor(HUniversalArtist* parentArtist,
+HInjectionVisitor::HInjectionVisitor(shared_ptr<HUniversalArtist> parent_artist,
                                      HGraph* method_graph)
     : HArtistMethodVisitor(method_graph)
-    , artist(parentArtist)
+    , artist(parent_artist)
     , graph(method_graph) {
   DCHECK(artist != nullptr);
   DCHECK(graph != nullptr);
@@ -70,7 +70,7 @@ void HInjectionVisitor::InjectInstruction(HInstruction* instruction, const Injec
         break;
       case InjectionTarget::METHOD_START:
       case InjectionTarget::METHOD_END:
-        check_signature = this->artist->GetMethodInfo()->GetMethodName(true);
+        check_signature = this->artist->GetMethodInfo().GetMethodName(true);
         break;
       case InjectionTarget::NO_INJECTION:
       default:
@@ -248,7 +248,7 @@ void HInjectionVisitor::VisitReturn(HReturn* instruction) {
   DCHECK(instruction != nullptr);
   const std::vector<Injection>& checkInjections = artist->GetInjectionTableEntry(VisitorKeys::H_RETURN);
   VLOG(artistd) << "HInjectionVisitor::VisitReturn() Injections #" << checkInjections.size()
-                << " PARENT: " << this->artist->GetMethodInfo()->GetMethodName(true);
+                << " PARENT: " << this->artist->GetMethodInfo().GetMethodName(true);
 
   for (auto && injection : checkInjections) {
     this->InjectInstruction(instruction, injection);
@@ -263,7 +263,7 @@ void HInjectionVisitor::VisitReturnVoid(HReturnVoid* instruction) {
   const std::vector<Injection>& checkInjections = artist->GetInjectionTableEntry(VisitorKeys::H_RETURN_VOID);
 
   VLOG(artistd) << "HInjectionVisitor::VisitReturnVoid() Injections #" << checkInjections.size()
-                << " PARENT: " << this->artist->GetMethodInfo()->GetMethodName(true);
+                << " PARENT: " << this->artist->GetMethodInfo().GetMethodName(true);
 
   for (auto && injection : checkInjections) {
     this->InjectInstruction(instruction, injection);

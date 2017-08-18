@@ -29,15 +29,17 @@
 #include "optimizing/artist/artist_log.h"
 #include "optimizing/artist/error_handler.h"
 
+using std::make_shared;
+
 namespace art {
 
 // codelib will be deleted in destructor
-CodeLibEnvironment::CodeLibEnvironment(const DexfileEnvironment *dexfile_env,
-                                       const DexFile *codelib_dex_file, const CodeLib *codelib,
+CodeLibEnvironment::CodeLibEnvironment(shared_ptr<const DexfileEnvironment> dexfile_env,
+                                       const DexFile *codelib_dex_file, shared_ptr<const CodeLib> codelib,
                                        jobject jclass_loader)
         : _codelib_dex(codelib_dex_file), _codelib(codelib), _jclass_loader(jclass_loader), _instance_offset(art::MemberOffset(0)) {
   for (auto dex_file : dexfile_env->getAppDexFiles()) {
-      auto symbols = new CodelibSymbols(dex_file, codelib, jclass_loader);
+      auto symbols = make_shared<CodelibSymbols>(dex_file, codelib, jclass_loader);
       _symbols[dex_file] = symbols;
   }
 
@@ -66,18 +68,11 @@ CodeLibEnvironment::CodeLibEnvironment(const DexfileEnvironment *dexfile_env,
   _instance_idx = ArtUtils::FindFieldIdxFromName(*codelib_dex_file, _codelib->getInstanceField());
 }
 
-CodeLibEnvironment::~CodeLibEnvironment() {
-  delete _codelib;
-  for (auto it : _symbols) {
-      delete it.second;
-  }
-}
-
 const DexFile* CodeLibEnvironment::getDexFile() const {
   return _codelib_dex;
 }
 
-const CodelibSymbols* CodeLibEnvironment::getCodelibSymbols(const DexFile* dex_file) const {
+shared_ptr<const CodelibSymbols> CodeLibEnvironment::getCodelibSymbols(const DexFile* dex_file) const {
   auto result = _symbols.find(dex_file);
   if (result == _symbols.end()) {
       return nullptr;

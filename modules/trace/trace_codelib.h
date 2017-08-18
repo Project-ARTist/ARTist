@@ -37,11 +37,18 @@ class TraceCodeLib : public CodeLib {
   static const string TRACELOG;
 
  public:
-  TraceCodeLib() {}
-  virtual ~TraceCodeLib() {}
-  virtual unordered_set<string>& getMethods() const;
-  virtual string& getInstanceField() const;
-  virtual string& getCodeClass() const;
+  TraceCodeLib() = default;
+  TraceCodeLib(const TraceCodeLib& other) = default;
+  TraceCodeLib(TraceCodeLib&& other) = default;
+
+  ~TraceCodeLib() override = default;
+
+  TraceCodeLib& operator=(const TraceCodeLib&) = default;
+  TraceCodeLib& operator=(TraceCodeLib&&) = default;
+
+  unordered_set<string>& getMethods() const override;
+  string& getInstanceField() const override;
+  string& getCodeClass() const override;
 };  // class TraceCodeLib
 
 }  // namespace art

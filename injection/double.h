@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @author "Oliver Schranz <oliver.schranz@cispa.saarland>"
  * @author "Sebastian Weisgerber <weisgerber@cispa.saarland>"
  *
  */
@@ -29,15 +28,10 @@ namespace art {
 
 class Double : public Primitives {
  public:
-  Double()
-      : value(0.0) {}
-
   explicit Double(const double _value)
       : value(_value) {}
 
-  virtual ~Double() {}
-
-  virtual ParameterType GetType() const {
+  ParameterType GetType() const override {
     return ParameterType::tDouble;
   }
 

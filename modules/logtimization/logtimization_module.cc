@@ -22,13 +22,16 @@
 #include "logtimization_module.h"
 #include "logtimization_artist.h"
 
+using std::make_shared;
+
 namespace art {
 
-HArtist* LogtimizationModule::createPass(HGraph *graph, const DexCompilationUnit &dex_compilation_unit) const {
-  return new /*(graph->GetArena())*/ HLogtimization(graph, dex_compilation_unit);
+shared_ptr<HArtist> LogtimizationModule::createPass(HGraph *graph, const DexCompilationUnit &dex_compilation_unit) const {
+//  return new /*(graph->GetArena())*/ HLogtimization(graph, dex_compilation_unit);
+  return make_shared<HLogtimization>(graph, dex_compilation_unit);
 }
 
-const CodeLib* LogtimizationModule::createCodeLib() const {
+shared_ptr<const CodeLib> LogtimizationModule::createCodeLib() const {
   return nullptr;
 }
 

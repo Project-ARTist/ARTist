@@ -24,21 +24,20 @@
 #include "param_finder.h"
 #include "dex_file-inl.h"
 
-
 namespace art {
 
-const MethodInfo* MethodInfoFactory::Obtain(HGraph* methodGraph, const DexCompilationUnit& compUnit) {
-  MethodInfo* info = new MethodInfo(methodGraph, compUnit);
+const MethodInfo MethodInfoFactory::obtain(HGraph *method_graph, const DexCompilationUnit &comp_unit) {
+  MethodInfo info(method_graph, comp_unit);
 
-  string signature_string = methodGraph->GetDexFile().GetMethodSignature(
-      methodGraph->GetDexFile().GetMethodId(methodGraph->GetMethodIdx())).ToString();
+  string signature_string = method_graph->GetDexFile().GetMethodSignature(
+      method_graph->GetDexFile().GetMethodId(method_graph->GetMethodIdx())).ToString();
 
-  ParamFinder visitor(methodGraph);
+  ParamFinder visitor(method_graph);
   visitor.VisitReversePostOrder();
 
   // searching method parameters
-  info->params = visitor.GetFoundParameters();
-  ArtUtils::ExtractMethodArguments(signature_string, info->paramTypes);
+  info.params = visitor.GetFoundParameters();
+  ArtUtils::ExtractMethodArguments(signature_string, info.paramTypes);
 
   return info;
 }

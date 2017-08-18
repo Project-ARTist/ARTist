@@ -23,13 +23,16 @@
 #include "trace_artist.h"
 #include "trace_codelib.h"
 
+using std::make_shared;
+
 namespace art {
 
-    HArtist* TraceModule::createPass(HGraph *graph, const DexCompilationUnit &dex_compilation_unit) const {
-        return new /*(graph->GetArena())*/ HTraceArtist(graph, dex_compilation_unit);
+    shared_ptr<HArtist> TraceModule::createPass(HGraph *graph, const DexCompilationUnit &dex_compilation_unit) const {
+//        return new /*(graph->GetArena())*/ HTraceArtist(graph, dex_compilation_unit);
+        return make_shared<HTraceArtist>(graph, dex_compilation_unit);
     }
 
-    const CodeLib* TraceModule::createCodeLib() const {
-        return new TraceCodeLib();
+    shared_ptr<const CodeLib> TraceModule::createCodeLib() const {
+        return make_shared<TraceCodeLib>();
     }
 }  // namespace art

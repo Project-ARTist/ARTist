@@ -36,6 +36,7 @@
 using std::map;
 using std::once_flag;
 using std::call_once;
+using std::shared_ptr;
 
 namespace art {
 
@@ -47,13 +48,11 @@ class CodelibSymbols;
  */
 class CodeLibEnvironment {
  public:
-  explicit CodeLibEnvironment(const DexfileEnvironment* dexfile_env, const DexFile* codelib_dex_file,
-                              const CodeLib* codelib, jobject jclass_loader);
-
-  ~CodeLibEnvironment();
+  explicit CodeLibEnvironment(shared_ptr<const DexfileEnvironment> dexfile_env, const DexFile* codelib_dex_file,
+                              shared_ptr<const CodeLib> codelib, jobject jclass_loader);
 
   const DexFile* getDexFile() const;
-  const CodelibSymbols* getCodelibSymbols(const DexFile* dex_file) const;
+  shared_ptr<const CodelibSymbols> getCodelibSymbols(const DexFile* dex_file) const;
 
   ClassDefIdx getClassDefIdx() const;
   TypeIdx getTypeIdx() const;
@@ -67,14 +66,14 @@ class CodeLibEnvironment {
 
  private:
   const DexFile* _codelib_dex;
-  const CodeLib* _codelib;
+  shared_ptr<const CodeLib> _codelib;
 
   // initialized in constructor
   ClassDefIdx _cld_idx;
   TypeIdx _type_idx;
   FieldIdx _instance_idx;
   jobject _jclass_loader;
-  map<const DexFile*, CodelibSymbols*> _symbols;
+  map<const DexFile*, shared_ptr<CodelibSymbols>> _symbols;
   Handle<mirror::ClassLoader> _class_loader;
   ClassLinker* _class_linker;
 

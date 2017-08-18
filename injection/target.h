@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @author "Oliver Schranz <oliver.schranz@cispa.saarland>"
  * @author "Sebastian Weisgerber <weisgerber@cispa.saarland>"
  *
  */
@@ -24,6 +23,8 @@
 #define ART_INJECTION_TARGET_H_
 
 #include <string>
+
+using std::string;
 
 namespace art {
 
@@ -49,21 +50,21 @@ enum InjectionTarget { NO_INJECTION = -1
  */
 class Target {
  public:
-  Target(const std::string& targetSignature, InjectionTarget targetType);
+  Target(const string& targetSignature, InjectionTarget targetType);
   Target(const Target& copy);
   virtual ~Target();
 
   Target& operator= (const Target& other);
 
-  const std::string GetTargetSignature() const;
+  const string GetTargetSignature() const;
 
   InjectionTarget GetTargetType() const;
 
  public:
-  static const std::string GENERIC_TARGET;
+  static const char GENERIC_TARGET[];
 
  private:
-  std::string target_signature;
+  string target_signature;
   InjectionTarget target_type;
 };
 

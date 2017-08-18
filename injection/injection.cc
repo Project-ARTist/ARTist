@@ -24,47 +24,19 @@
 #include "parameter.h"
 #include <iostream>
 
+using std::move;
+
 namespace art {
-
-Injection::Injection()
-    : signature()
-    , parameters()
-    , injection_targets() { }
-
-Injection::Injection(const std::string& _signature,
-                     const std::vector<std::shared_ptr<Parameter>>& _parameter,
-                     const std::vector<Target>& _targets)
+// we need a `shared_ptr` for `Parameter` since it is an abstract class and hence we cannot create `vector<Parameter>`.
+Injection::Injection(const string &_signature,
+                     vector<shared_ptr<const Parameter>> _parameter,
+                     vector<const Target> _injection_target)
     : signature(_signature)
     , parameters(_parameter)
-    , injection_targets(_targets) { }
+    , injection_targets(_injection_target) {}
 
-Injection::Injection(const std::string& _signature,
-                     const std::vector<std::shared_ptr<Parameter>>& _parameter,
-                     const Target& _injection_target)
-    : signature(_signature)
-    , parameters(_parameter)
-    , injection_targets() {
-    injection_targets.push_back(_injection_target);
-}
-
-Injection::Injection(const Injection& copy)
-    : signature(copy.GetSignature())
-    , parameters(copy.GetParameters())
-    , injection_targets(copy.GetInjectionTargets()) { }
-
-Injection& Injection::operator= (const Injection& other) {
-  // check for self-assignment
-  if (&other == this) {
-    return *this;
-  }
-  signature = other.GetSignature();
-  parameters = other.GetParameters();
-  injection_targets = other.GetInjectionTargets();
-  return *this;
-}
-
-const std::string Injection::ToString() const {
-  std::string string_ = "Injection: ";
+const string Injection::ToString() const {
+  string string_ = "Injection: ";
 
   string_ += (this->signature + " [WHAT] \n");
   for (auto && param : this->parameters) {
@@ -79,15 +51,15 @@ const std::string Injection::ToString() const {
 }
 
 
-const std::string Injection::GetSignature() const {
+const string& Injection::GetSignature() const {
   return signature;
 }
 
-const std::vector<std::shared_ptr<Parameter>>& Injection::GetParameters() const {
+const vector<shared_ptr<const Parameter>>& Injection::GetParameters() const {
   return parameters;
 }
 
-const std::vector<Target>& Injection::GetInjectionTargets() const {
+const vector<const Target>& Injection::GetInjectionTargets() const {
   return injection_targets;
 }
 

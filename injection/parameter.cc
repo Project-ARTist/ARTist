@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @author "Oliver Schranz <oliver.schranz@cispa.saarland>"
  * @author "Sebastian Weisgerber <weisgerber@cispa.saarland>"
  *
  */
@@ -24,24 +23,6 @@
 #include "optimizing/artist/artist_log.h"
 
 namespace art {
-
-Parameter::Parameter() {
-}
-
-Parameter::Parameter(const Parameter& copy) {
-  DCHECK(&copy);
-}
-
-Parameter::~Parameter() {
-}
-
-Parameter& Parameter::operator= (const Parameter& other) {
-  // check for self-assignment
-  if (&other == this) {
-    return *this;
-  }
-  return *this;
-}
 
 const std::string Parameter::PrettyName() const {
   return TypeToString(this->GetType());

@@ -27,8 +27,8 @@
 namespace art {
 
 class LogtimizationModule : public Module {
-  HArtist* createPass(HGraph* graph, const DexCompilationUnit& dex_compilation_unit) const OVERRIDE;
-  const CodeLib* createCodeLib() const OVERRIDE;
+  shared_ptr<HArtist> createPass(HGraph* graph, const DexCompilationUnit& dex_compilation_unit) const OVERRIDE;
+  shared_ptr<const CodeLib> createCodeLib() const OVERRIDE;
 };
 
 }  // namespace art

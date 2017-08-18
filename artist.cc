@@ -39,11 +39,11 @@
 #include "injection/float.h"
 
 
-using std::string;
 using std::vector;
 using std::shared_ptr;
 using std::endl;
 using std::sort;
+using std::atomic_flag;
 
 namespace art {
 
@@ -62,7 +62,7 @@ HArtist::HArtist(HGraph* graph,
 #endif
                     pass_name, stats)
     , codelib_instruction(nullptr)
-    , method_info(MethodInfoFactory::Obtain(graph, _dex_compilation_unit)) {
+    , method_info(MethodInfoFactory::obtain(graph, _dex_compilation_unit)) {
   ArtistLog::SetupArtistLogging();
   const string& VERSION = "00110";
   LogVersionOnce(VERSION);
@@ -70,7 +70,7 @@ HArtist::HArtist(HGraph* graph,
 
 // TODO move out of multithreaded area
 void HArtist::LogVersionOnce(const string& VERSION) const {
-  static std::atomic_flag version_logged = ATOMIC_FLAG_INIT;
+  static atomic_flag version_logged = ATOMIC_FLAG_INIT;
 
   if (!version_logged.test_and_set()) {
     VLOG(artist) << std::endl
@@ -78,17 +78,12 @@ void HArtist::LogVersionOnce(const string& VERSION) const {
   }
 }
 
-HArtist::~HArtist() {
-  VLOG(artistd) << "~HArtist()" << std::endl;
-    delete method_info;
-}
-
 void HArtist::Run() {
   CHECK(graph_ != nullptr);
   VLOG(artistd) << "HArtist::Run()";
 
-  const std::string method_name = method_info->GetMethodName();
-  const std::string& dexFileName = graph_->GetDexFile().GetLocation();
+  const string method_name = method_info.GetMethodName();
+  const string& dexFileName = graph_->GetDexFile().GetLocation();
 
   if (BlackList::IsBlacklisted(method_name)) {
     VLOG(artistd) << "HArtist::Run() SKIPPING " << method_name << " (" << dexFileName << ")";;
@@ -127,7 +122,7 @@ HInstruction* HArtist::GetCodeLibInstruction(HInstruction *instruction_cursor) {
   return this->codelib_instruction;
 }
 
-const MethodInfo* HArtist::GetMethodInfo() const {
+const MethodInfo& HArtist::GetMethodInfo() const {
   VLOG(artistd) << "HArtist::GetMethodInfo(): " << this->method_info << std::flush;
   return this->method_info;
 }
@@ -139,19 +134,19 @@ void HArtist::SetupModule() {
   VLOG(artistd) << "HArtist::SetupModule(): No-op.";
 }
 
-void HArtist::setDexfileEnvironment(const DexfileEnvironment *environment) {
+void HArtist::setDexfileEnvironment(shared_ptr<const DexfileEnvironment> environment) {
     _dexfile_env = environment;
 }
 
-const DexfileEnvironment *HArtist::getDexfileEnvironment() const {
+shared_ptr<const DexfileEnvironment> HArtist::getDexfileEnvironment() const {
     return _dexfile_env;
 }
 
-void HArtist::setCodeLibEnvironment(CodeLibEnvironment *environment) {
+void HArtist::setCodeLibEnvironment(shared_ptr<CodeLibEnvironment> environment) {
   this->_codelib_env = environment;
 }
 
-CodeLibEnvironment* HArtist::getCodeLibEnvironment() const {
+shared_ptr<CodeLibEnvironment> HArtist::getCodeLibEnvironment() const {
   return _codelib_env;
 }
 

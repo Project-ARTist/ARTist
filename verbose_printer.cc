@@ -31,15 +31,11 @@
 
 namespace art {
 
-  VerbosePrinter::VerbosePrinter(const MethodInfo* info)
-      : StringPrettyPrinter(info->GetGraph()), methodInfo(info) { }
+  VerbosePrinter::VerbosePrinter(const MethodInfo& info)
+      : StringPrettyPrinter(info.GetGraph()), methodInfo(info) { }
 
   VerbosePrinter::VerbosePrinter(HGraph* graph, const DexCompilationUnit& dex_compilation_unit)
-      : StringPrettyPrinter(graph) {
-    const MethodInfo* info = MethodInfoFactory::Obtain(graph, dex_compilation_unit);
-    DCHECK(info != nullptr);
-    methodInfo = info;
-  }
+      : StringPrettyPrinter(graph), methodInfo(MethodInfoFactory::obtain(graph, dex_compilation_unit)) {}
 
   void VerbosePrinter::VisitNewInstance(art::HNewInstance *instruction) {
     PrintPreInstruction(instruction);
@@ -65,7 +61,7 @@ namespace art {
     PrintString(instruction->DebugName());
     PrintString("(");
     Primitive::Type type = instruction->GetType();
-    if (methodInfo->IsThisParameter(instruction)) {
+    if (methodInfo.IsThisParameter(instruction)) {
       PrintString("this");
     } else if (type != Primitive::Type::kPrimNot) {
       std::stringstream strstream;

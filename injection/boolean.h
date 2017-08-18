@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @author "Oliver Schranz <oliver.schranz@cispa.saarland>"
  * @author "Sebastian Weisgerber <weisgerber@cispa.saarland>"
  *
  */
@@ -29,8 +28,6 @@ namespace art {
 
 class Boolean : public Primitives {
  public:
-  Boolean();
-
   explicit Boolean(const bool _value)
       : value(_value) {}
 

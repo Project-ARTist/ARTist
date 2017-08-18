@@ -36,31 +36,35 @@
 
 #include "optimizing/artist/verbose_printer.h"
 
+#include "optimizing/artist/injection/char.h"
+
 using std::string;
 using std::vector;
 using std::shared_ptr;
+using std::make_shared;
 using std::endl;
 using std::sort;
 
 
 namespace art {
 
-std::vector<Injection> &HTraceArtist::ProvideInjections() const {
+vector<Injection> HTraceArtist::ProvideInjections() const {
   VLOG(artistd) << "HTraceArtist::ProvideInjections()";
 
-  std::vector<Injection>* injections = new std::vector<Injection>();    // TODO where is this deleted?
-  const std::string METHOD_SIGNATURE_TRACELOG =
-          TraceCodeLib::TRACELOG;
+  vector<shared_ptr<const Parameter>> params;
+  auto param = make_shared<const Char>();
+  params.push_back(param);
 
-  std::vector<shared_ptr<Parameter>> empty_Params;
-  Target target_all_methods(Target::GENERIC_TARGET, InjectionTarget::METHOD_END);
-//  Target target_all_methods(".onCreate(", InjectionTarget::METHOD_START);
+  vector<const Target> targets;
+  const Target target(Target::GENERIC_TARGET, InjectionTarget::METHOD_END);
+//  const Target target(".onCreate(", InjectionTarget::METHOD_START);
+  targets.push_back(target);
 
-  Injection injection(METHOD_SIGNATURE_TRACELOG, empty_Params, target_all_methods);
-  injections->push_back(injection);
+  Injection injection(TraceCodeLib::TRACELOG, params, targets);
 
-  VLOG(artistd) << "HTraceArtist::SetupModule(): finished setting up injections";
-  return *injections;
+  vector<Injection> results;
+  results.push_back(injection);
+  return results;
 }
 
 }  // namespace art

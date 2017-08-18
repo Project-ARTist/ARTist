@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @author "Oliver Schranz <oliver.schranz@cispa.saarland>"
  * @author "Sebastian Weisgerber <weisgerber@cispa.saarland>"
  *
  */
@@ -29,9 +28,6 @@ namespace art {
 
 class Long : public Primitives {
  public:
-  Long()
-      : value(0) {}
-
   explicit Long(const int64_t _value)
       : value(_value) {}
 
@@ -39,9 +35,7 @@ class Long : public Primitives {
     return this->value;
   }
 
-  virtual ~Long() {}
-
-  virtual ParameterType GetType() const {
+  ParameterType GetType() const override {
     return ParameterType::tLong;
   }
 

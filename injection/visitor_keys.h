@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @author "Oliver Schranz <oliver.schranz@cispa.saarland>"
  * @author "Sebastian Weisgerber <weisgerber@cispa.saarland>"
  *
  */
@@ -25,17 +24,19 @@
 
 #include <string>
 
+using std::string;
+
 namespace art {
 
 class VisitorKeys {
  public:
-  static const std::string H_INVOKE;
-  static const std::string H_INVOKE_INTERFACE;
-  static const std::string H_INVOKE_STATIC_OR_DIRECT;
-  static const std::string H_INVOKE_VIRTUAL;
+  static const string H_INVOKE;
+  static const string H_INVOKE_INTERFACE;
+  static const string H_INVOKE_STATIC_OR_DIRECT;
+  static const string H_INVOKE_VIRTUAL;
 
-  static const std::string H_RETURN;
-  static const std::string H_RETURN_VOID;
+  static const string H_RETURN;
+  static const string H_RETURN_VOID;
 };
 
 }  // namespace art

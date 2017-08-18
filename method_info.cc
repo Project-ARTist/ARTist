@@ -82,4 +82,17 @@ namespace art {
 HGraph* MethodInfo::GetGraph() const {
   return graph;
 }
+
+ostream &operator<<(ostream &os, const MethodInfo &info) {
+  os << "MethodInfo { method: ";
+  if (info.IsStatic()) {
+    os << "static ";
+  }
+  os << info.GetMethodName(true);
+
+
+  os << "}";
+  return os;
+}
+
 }  // namespace art

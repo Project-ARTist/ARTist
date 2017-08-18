@@ -26,14 +26,17 @@
 #include <string>
 #include <vector>
 
+using std::vector;
+using std::string;
+
 namespace art {
 
 class BlackList {
   public:
-    static const std::vector<std::string> PACKAGE_BLACKLIST;
+    static const vector<string> PACKAGE_BLACKLIST;
 
   public:
-    static bool IsBlacklisted(const std::string& method_name);
+    static bool IsBlacklisted(const string& method_name);
   };
 }  // namespace art
 

@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @author "Oliver Schranz <oliver.schranz@cispa.saarland>"
  * @author "Sebastian Weisgerber <weisgerber@cispa.saarland>"
  *
  */
@@ -24,9 +23,9 @@
 
 namespace art {
 
-const std::string Target::GENERIC_TARGET = "*";
+const char Target::GENERIC_TARGET[]  = "*";
 
-Target::Target(const std::string& targetSignature, InjectionTarget targetType)
+Target::Target(const string& targetSignature, InjectionTarget targetType)
     : target_signature(targetSignature)
     , target_type(targetType) {
 }
@@ -36,8 +35,7 @@ Target::Target(const Target& copy)
     , target_type(copy.GetTargetType()) {
 }
 
-Target::~Target() {
-}
+Target::~Target() = default;
 
 Target& Target::operator= (const Target& other) {
   // check for self-assignment
@@ -49,7 +47,7 @@ Target& Target::operator= (const Target& other) {
   return *this;
 }
 
-const std::string Target::GetTargetSignature() const {
+const string Target::GetTargetSignature() const {
   return this->target_signature;
 }
 

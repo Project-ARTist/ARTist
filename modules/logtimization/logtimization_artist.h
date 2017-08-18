@@ -48,7 +48,7 @@ class HLogtimization : public HArtist {
                  const char* pass_name = "ArtistLogtimization",
                  OptimizingCompilerStats* stats = nullptr);
 
-  virtual ~HLogtimization();
+  ~HLogtimization() OVERRIDE;
 
   void RunModule() OVERRIDE;
 };

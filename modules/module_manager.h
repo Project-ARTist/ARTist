@@ -23,6 +23,7 @@
 #define ART_MODULES_MODULE_MANAGER_H_
 
 #include <atomic>
+#include <memory>
 
 #include "module.h"
 #include "optimizing/artist/env/codelib_environment.h"
@@ -32,6 +33,8 @@
 using std::map;
 using std::vector;
 using std::atomic_bool;
+using std::shared_ptr;
+using std::make_shared;
 
 namespace art {
 
@@ -47,35 +50,37 @@ namespace art {
 class ModuleManager {
 // singleton logic
  public:
-    static ModuleManager* getInstance();
+    static ModuleManager& getInstance();
 
     explicit ModuleManager(ModuleManager const&) = delete;
+    explicit ModuleManager(ModuleManager &&) noexcept = delete;
     void operator=(ModuleManager const&)  = delete;
+    void operator=(ModuleManager &&) noexcept = delete;
+    ~ModuleManager() = default;
 
  private:
-    ModuleManager() : init_flag(false) {}
-    ~ModuleManager();
+    ModuleManager() : init_flag(false), _modules {}, _dex_file_env(), _environments {} {}
 
-    bool definesClass(const DexFile* dexfile, const MethodSignature searched_signature) const;
+    bool definesClass(const DexFile* dexfile, MethodSignature searched_signature) const;
 
 // regular logic
  public:
-    bool registerModule(ModuleId id, const Module* module);
+    bool registerModule(ModuleId id, shared_ptr<const Module> module);
 
-    const Module* getModule(ModuleId id) const;
-    const DexfileEnvironment* getDexFileEnvironment() const;
-    CodeLibEnvironment* getCodelibEnvironment(ModuleId id) const;
+    shared_ptr<const Module> getModule(ModuleId id) const;
+    shared_ptr<const DexfileEnvironment> getDexFileEnvironment() const;
+    shared_ptr<CodeLibEnvironment> getCodelibEnvironment(ModuleId id) const;
 
-    const map<ModuleId, const Module*> getModules() const;
+    const map<ModuleId, shared_ptr<const Module>> getModules() const;
 
     void initializeModules(vector<const DexFile*> dex_files, jobject jclass_loader);
     bool initialized() const;
 
  private:
     atomic_bool init_flag;
-    map<ModuleId, const Module*> _modules;
-    DexfileEnvironment* _dex_file_env;
-    map<ModuleId, CodeLibEnvironment*> _environments;
+    map<ModuleId, shared_ptr<const Module>> _modules;
+    shared_ptr<DexfileEnvironment> _dex_file_env;
+    map<ModuleId, shared_ptr<CodeLibEnvironment>> _environments;
 };
 
 }  // namespace art

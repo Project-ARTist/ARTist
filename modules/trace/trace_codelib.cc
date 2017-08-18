@@ -24,19 +24,19 @@
 
 namespace art {
 
-const std::string TraceCodeLib::TRACELOG =
-            "Lsaarland/cispa/artist/codelib/CodeLib;traceLog()V";
+const std::string TraceCodeLib::TRACELOG("Lsaarland/cispa/artist/codelib/CodeLib;traceLog()V");
 
 unordered_set<string>& TraceCodeLib::getMethods() const {
-    static unordered_set<string> methods({TRACELOG});
-    return methods;
+  static unordered_set<string> methods({TRACELOG});
+  return methods;
 }
 string& TraceCodeLib::getInstanceField() const {
-    static string instanceField = "Lsaarland/cispa/artist/codelib/CodeLib;INSTANCE";
-    return instanceField;
+  static string instanceField = "Lsaarland/cispa/artist/codelib/CodeLib;INSTANCE";
+  return instanceField;
 }
 string& TraceCodeLib::getCodeClass() const {
-    static string codeClass = "Lsaarland/cispa/artist/codelib/CodeLib;";
-    return codeClass;
+  static string codeClass = "Lsaarland/cispa/artist/codelib/CodeLib;";
+  return codeClass;
 }
+
 }  // namespace art

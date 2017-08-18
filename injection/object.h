@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @author "Oliver Schranz <oliver.schranz@cispa.saarland>"
  * @author "Sebastian Weisgerber <weisgerber@cispa.saarland>"
  *
  */
@@ -29,10 +28,7 @@ namespace art {
 
 class Object : public Parameter {
  public:
-  Object() { }
-  virtual ~Object();
-
-  virtual ParameterType GetType() const {
+  ParameterType GetType() const override {
     return ParameterType::tObject;
   }
 };

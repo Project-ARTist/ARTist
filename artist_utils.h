@@ -30,9 +30,7 @@
 #include "env/codelib_symbols.h"
 #include "injection/injection.h"
 
-using std::string;
 using std::runtime_error;
-using std::vector;
 using std::shared_ptr;
 
 class HGraph;
@@ -48,52 +46,52 @@ namespace art {
 
   class ArtUtils {
    public:
-    static std::string GetDexName(const std::string& dex_name, uint32_t dex_file_idx);
+    static string GetDexName(const string& dex_name, uint32_t dex_file_idx);
 
    public:
-    static const DexFile::MethodId* FindMethodId(const HGraph* graph, const std::string& searched_method_name);
-    static const DexFile::MethodId* FindMethodId(const DexFile& dex_file, const std::string& searched_method_name);
+    static const DexFile::MethodId* FindMethodId(const HGraph* graph, const string& searched_method_name);
+    static const DexFile::MethodId* FindMethodId(const DexFile& dex_file, const string& searched_method_name);
 
-    static MethodIdx FindMethodIdx(const HGraph* graph, const std::string& searched_method_name);
-    static MethodIdx FindMethodIdx(const DexFile& dex_file, const std::string& searched_method_name);
+    static MethodIdx FindMethodIdx(const HGraph* graph, const string& searched_method_name);
+    static MethodIdx FindMethodIdx(const DexFile& dex_file, const string& searched_method_name);
 
-    static TypeIdx FindTypeIdxFromName(const HGraph* graph, const std::string & searched_type_name);
-    static TypeIdx FindTypeIdxFromName(const DexFile& dex_file, const std::string & searched_type_name);
+    static TypeIdx FindTypeIdxFromName(const HGraph* graph, const string & searched_type_name);
+    static TypeIdx FindTypeIdxFromName(const DexFile& dex_file, const string & searched_type_name);
 
-    static FieldIdx FindFieldIdxFromName(const HGraph* graph, const std::string & searched_field_name);
-    static FieldIdx FindFieldIdxFromName(const DexFile& dex_file, const std::string & searched_field_type);
+    static FieldIdx FindFieldIdxFromName(const HGraph* graph, const string & searched_field_name);
+    static FieldIdx FindFieldIdxFromName(const DexFile& dex_file, const string & searched_field_type);
 
-    static ClassDefIdx FindClassDefIdxFromName(const HGraph* graph, const  std::string & searched_class_name);
-    static ClassDefIdx FindClassDefIdxFromName(const DexFile& dex_file, const  std::string & searched_class_name);
+    static ClassDefIdx FindClassDefIdxFromName(const HGraph* graph, const  string & searched_class_name);
+    static ClassDefIdx FindClassDefIdxFromName(const DexFile& dex_file, const  string & searched_class_name);
 
     static void DumpTypes(const HGraph* graph);
     static void DumpTypes(const DexFile& dex_file);
 
-    static std::string GetMethodName(HInvoke* invoke, bool signature = false);
-    static std::string GetMethodSignature(const HInvoke* invoke);
+    static string GetMethodName(HInvoke* invoke, bool signature = false);
+    static string GetMethodSignature(const HInvoke* invoke);
 
-        static std::string GetDexFileName(const HGraph* graph);
+        static string GetDexFileName(const HGraph* graph);
 
     static void DumpFields(const HGraph* graph);
     static void DumpFields(const DexFile& dex_file);
 
     static HInstruction* InjectCodeLib(const HInstruction* instruction_cursor,
-                                       CodeLibEnvironment* env,
+                                       shared_ptr<CodeLibEnvironment> env,
                                        const bool entry_block_injection = true);
     static HInstruction* InjectMethodCall(HInstruction* instruction_cursor,
-                                       const std::string& method_signature,
-                                       std::vector<HInstruction*>& function_params,
-                                       CodeLibEnvironment* env,
+                                       const string& method_signature,
+                                       vector<HInstruction*>& function_params,
+                                          shared_ptr<CodeLibEnvironment> env,
                                        const Primitive::Type return_type = Primitive::Type::kPrimVoid,
                                        const bool inject_before = true);
 
-    static void ExtractMethodArguments(const std::string &signature, vector<string> &result);
-    static std::string ExtractMethodReturnValue(const string& method_signature);
+    static void ExtractMethodArguments(const string &signature, vector<string> &result);
+    static string ExtractMethodReturnValue(const string& method_signature);
 
-    static uint32_t SetupInstructionArguments(HInvoke* instruction, std::vector<HInstruction*>& instruction_arguments);
+    static uint32_t SetupInstructionArguments(HInvoke* instruction, vector<HInstruction*>& instruction_arguments);
     static void SetupFunctionParams(HGraph* graph,
                                     const Injection&,
-                                    std::vector<HInstruction*>& function_parameters);
+                                    vector<HInstruction*>& function_parameters);
 
     static bool IsNativeMethod(HInvoke* instruction);
 

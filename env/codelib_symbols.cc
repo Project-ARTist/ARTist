@@ -24,7 +24,7 @@
 
 namespace art {
 
-CodelibSymbols::CodelibSymbols(const DexFile* dex_file, const CodeLib* codelib, jobject jclass_loader)
+CodelibSymbols::CodelibSymbols(const DexFile* dex_file, shared_ptr<const CodeLib> codelib, jobject jclass_loader)
         : _dex_file(dex_file) {
   // init type index
   _typeIdx = ArtUtils::FindTypeIdxFromName(*dex_file, codelib->getCodeClass());

@@ -23,48 +23,41 @@
 #ifndef ART_INJECTION_INJECTION_H_
 #define ART_INJECTION_INJECTION_H_
 
+#include <memory>
 #include <string>
 #include <vector>
 #include <unordered_set>
 #include "target.h"
 #include "parameter.h"
 
+using std::shared_ptr;
+using std::vector;
+using std::string;
+using std::ostream;
+
 namespace art {
 
 class Injection {
  public:
-  Injection();
-  Injection(const std::string& _signature,
-            const std::vector<std::shared_ptr<Parameter>>& _parameter,
-            const Target& _injection_target);
+  Injection(const string& _signature,
+            vector<shared_ptr<const Parameter>> _parameter,
+            vector<const Target> _injection_target);
 
-  Injection(const std::string& _signature,
-            const std::vector<std::shared_ptr<Parameter>>& _parameter,
-            const std::vector<Target>& _targets);
+  const string ToString() const;
 
-  Injection(const Injection& copy);
-
-  virtual ~Injection() {}
-
-  Injection& operator= (const Injection&);
-
-  const std::string ToString() const;
-
-  const std::string GetSignature() const;
-  const std::vector<std::shared_ptr<Parameter>>& GetParameters() const;
-  const std::vector<Target>& GetInjectionTargets() const;
+  const string& GetSignature() const;
+  const vector<shared_ptr<const Parameter>>& GetParameters() const;
+  const vector<const Target>& GetInjectionTargets() const;
 
  private:
-  std::string signature;
+  string signature;
 
-  std::vector<std::shared_ptr<Parameter>> parameters;
+  vector<shared_ptr<const Parameter>> parameters;
 
-  std::vector<Target> injection_targets;
-
-  friend std::ostream& operator<<(std::ostream& os, const Injection& injection);
+  vector<const Target> injection_targets;
 };
 
-std::ostream& operator<<(std::ostream& os, const Injection& injection);
+ostream& operator<<(ostream& os, const Injection& injection);
 
 }  // namespace art
 

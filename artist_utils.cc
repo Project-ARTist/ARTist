@@ -40,26 +40,27 @@
 #include "driver/compiler_driver.h"
 #include "driver/compiler_driver-inl.h"
 
+using std::static_pointer_cast;
 
 namespace art {
 
 const DexFile::MethodId* ArtUtils::FindMethodId(const HGraph* graph,
-                                                const std::string& searched_method_name) {
+                                                const string& searched_method_name) {
   return ArtUtils::FindMethodId(graph->GetDexFile(), searched_method_name);
 }
 
 const DexFile::MethodId* ArtUtils::FindMethodId(const DexFile& dex_file,
-                                                const std::string& searched_method_name) {
+                                                const string& searched_method_name) {
   const size_t methodCount = dex_file.NumMethodIds();
 
   const DexFile::MethodId* foundMethodId = nullptr;
 
   for (uint32_t i = 0; i< methodCount; i++) {
     const DexFile::MethodId& methodId = dex_file.GetMethodId(i);
-    const std::string methodClass = dex_file.GetMethodDeclaringClassDescriptor(methodId);
-    const std::string methodName = dex_file.GetMethodName(methodId);
-    const std::string methodSignature = dex_file.GetMethodSignature(methodId).ToString();
-    const std::string fullyQualifiedMethodName(methodClass + methodName + methodSignature);
+    const string methodClass = dex_file.GetMethodDeclaringClassDescriptor(methodId);
+    const string methodName = dex_file.GetMethodName(methodId);
+    const string methodSignature = dex_file.GetMethodSignature(methodId).ToString();
+    const string fullyQualifiedMethodName(methodClass + methodName + methodSignature);
 
     if (searched_method_name.compare(fullyQualifiedMethodName) == 0) {
       foundMethodId = &methodId;
@@ -72,10 +73,10 @@ const DexFile::MethodId* ArtUtils::FindMethodId(const DexFile& dex_file,
   return foundMethodId;
 }
 
-    MethodIdx ArtUtils::FindMethodIdx(const HGraph* graph, const std::string& searched_method_name) {
+    MethodIdx ArtUtils::FindMethodIdx(const HGraph* graph, const string& searched_method_name) {
   return FindMethodIdx(graph->GetDexFile(), searched_method_name);
 }
-MethodIdx ArtUtils::FindMethodIdx(const DexFile& dex_file, const std::string& searched_method_name) {
+MethodIdx ArtUtils::FindMethodIdx(const DexFile& dex_file, const string& searched_method_name) {
   const DexFile::MethodId* methodId = ArtUtils::FindMethodId(dex_file, searched_method_name);
   if (methodId != nullptr) {
     return dex_file.GetIndexForMethodId(*methodId);
@@ -84,14 +85,14 @@ MethodIdx ArtUtils::FindMethodIdx(const DexFile& dex_file, const std::string& se
   ErrorHandler::abortCompilation(msg);
 }
 
-TypeIdx ArtUtils::FindTypeIdxFromName(const HGraph* graph, const std::string & searched_type_name) {
+TypeIdx ArtUtils::FindTypeIdxFromName(const HGraph* graph, const string & searched_type_name) {
   return FindTypeIdxFromName(graph->GetDexFile(), searched_type_name);
 }
 
-TypeIdx ArtUtils::FindTypeIdxFromName(const DexFile& dex_file, const std::string & searched_type_name) {
+TypeIdx ArtUtils::FindTypeIdxFromName(const DexFile& dex_file, const string & searched_type_name) {
   for (uint32_t i = 0; i < dex_file.NumTypeIds(); i++) {
     const DexFile::TypeId& typeId = dex_file.GetTypeId(i);
-    std::string type_name(dex_file.GetTypeDescriptor(typeId));
+    string type_name(dex_file.GetTypeDescriptor(typeId));
     if (type_name.compare(searched_type_name) == 0) {
         TypeIdx typeIdx = dex_file.GetIndexForTypeId(typeId);
         VLOG(artistd) << "Returning TypeIdx: " << typeIdx << " Type: " << searched_type_name;
@@ -102,17 +103,17 @@ TypeIdx ArtUtils::FindTypeIdxFromName(const DexFile& dex_file, const std::string
   ErrorHandler::abortCompilation(msg);
 }
 
-FieldIdx ArtUtils::FindFieldIdxFromName(const HGraph* graph, const std::string & searched_field_name) {
+FieldIdx ArtUtils::FindFieldIdxFromName(const HGraph* graph, const string & searched_field_name) {
   return FindFieldIdxFromName(graph->GetDexFile(), searched_field_name);
 }
 
-FieldIdx ArtUtils::FindFieldIdxFromName(const DexFile& dex_file, const std::string & searched_field_type) {
+FieldIdx ArtUtils::FindFieldIdxFromName(const DexFile& dex_file, const string & searched_field_type) {
   for (uint32_t i = 0; i < dex_file.NumFieldIds(); i++) {
     const DexFile::FieldId &fieldId = dex_file.GetFieldId(i);
 
-    const std::string fieldName(dex_file.GetFieldName(fieldId));
-    const std::string fieldType(dex_file.GetFieldTypeDescriptor(fieldId));
-    const std::string fullyQualifiedFieldName(fieldType + fieldName);
+    const string fieldName(dex_file.GetFieldName(fieldId));
+    const string fieldType(dex_file.GetFieldTypeDescriptor(fieldId));
+    const string fullyQualifiedFieldName(fieldType + fieldName);
 
     if (fullyQualifiedFieldName.compare(searched_field_type) == 0) {
         FieldIdx fieldIdx = dex_file.GetIndexForFieldId(fieldId);
@@ -124,16 +125,16 @@ FieldIdx ArtUtils::FindFieldIdxFromName(const DexFile& dex_file, const std::stri
   ErrorHandler::abortCompilation(msg);
 }
 
-ClassDefIdx ArtUtils::FindClassDefIdxFromName(const HGraph* graph, const  std::string & searched_class_name) {
+ClassDefIdx ArtUtils::FindClassDefIdxFromName(const HGraph* graph, const  string & searched_class_name) {
   return FindClassDefIdxFromName(graph->GetDexFile(), searched_class_name);
 }
 
-ClassDefIdx ArtUtils::FindClassDefIdxFromName(const DexFile& dex_file, const  std::string & searched_class_name) {
+ClassDefIdx ArtUtils::FindClassDefIdxFromName(const DexFile& dex_file, const  string & searched_class_name) {
   for (uint16_t idx = 0; idx < dex_file.NumClassDefs(); idx++) {
     const DexFile::ClassDef& def = dex_file.GetClassDef(idx);
     // get type
-    std::string class_name = dex_file.GetTypeDescriptor(dex_file.GetTypeId(def.class_idx_));
-    if (class_name.find(searched_class_name) != std::string::npos) {
+    string class_name = dex_file.GetTypeDescriptor(dex_file.GetTypeId(def.class_idx_));
+    if (class_name.find(searched_class_name) != string::npos) {
       VLOG(artistd) << "Found ClassDefId: " << idx << " for class: " << searched_class_name;
       return idx;
     }
@@ -151,7 +152,7 @@ void ArtUtils::DumpTypes(const DexFile& dex_file) {
 
   for (unsigned int i = 0; i < dex_file.NumTypeIds(); i++) {
     const DexFile::TypeId& typeID = dex_file.GetTypeId(i);
-    std::string type_name(dex_file.GetTypeDescriptor(typeID));
+    string type_name(dex_file.GetTypeDescriptor(typeID));
 
     VLOG(artistd) << type_name;
   }
@@ -166,8 +167,8 @@ void ArtUtils::DumpFields(const DexFile& dex_file) {
 
   for (unsigned int i = 0; i < dex_file.NumFieldIds(); i++) {
     const DexFile::FieldId& fieldId = dex_file.GetFieldId(i);
-    const std::string fieldName(dex_file.GetFieldName(fieldId));
-    const std::string typeName(dex_file.GetFieldTypeDescriptor(fieldId));
+    const string fieldName(dex_file.GetFieldName(fieldId));
+    const string typeName(dex_file.GetFieldTypeDescriptor(fieldId));
 
     VLOG(artistd) << typeName << " : " << fieldName;
   }
@@ -183,7 +184,7 @@ void ArtUtils::DumpFields(const DexFile& dex_file) {
  *
  */
 HInstruction* ArtUtils::InjectCodeLib(const HInstruction* instruction_cursor,
-                                      CodeLibEnvironment* env,
+                                      shared_ptr<CodeLibEnvironment> env,
                                       const bool entry_block_injection) {
   CHECK(instruction_cursor != nullptr);
   CHECK(env != nullptr);
@@ -199,7 +200,7 @@ HInstruction* ArtUtils::InjectCodeLib(const HInstruction* instruction_cursor,
     injection_cursor = const_cast<HInstruction*>(instruction_cursor);
   }
 
-  const CodelibSymbols* symbols = env->getCodelibSymbols(&graph->GetDexFile());
+  auto symbols = env->getCodelibSymbols(&graph->GetDexFile());
 
   HBasicBlock* injectionBlock = injection_cursor->GetBlock();
 
@@ -278,9 +279,9 @@ HInstruction* ArtUtils::InjectCodeLib(const HInstruction* instruction_cursor,
 }
 
 HInstruction* ArtUtils::InjectMethodCall(HInstruction* instruction_cursor,
-                                const std::string& method_signature,
-                                std::vector<HInstruction*>& function_params,
-                                CodeLibEnvironment* env,
+                                const string& method_signature,
+                                vector<HInstruction*>& function_params,
+                                shared_ptr<CodeLibEnvironment> env,
                                 const Primitive::Type return_type,
                                 const bool inject_before) {
   CHECK(env != nullptr);
@@ -293,7 +294,7 @@ HInstruction* ArtUtils::InjectMethodCall(HInstruction* instruction_cursor,
   HGraph* graph = instruction_cursor->GetBlock()->GetGraph();
   VLOG(artistd) << "ArtUtils::InjectMethodCall() graph:       " << graph << std::flush;
 
-  const std::string dex_file_name = ArtUtils::GetDexFileName(graph);
+  const string dex_file_name = ArtUtils::GetDexFileName(graph);
 
   HBasicBlock* instructionBlock = instruction_cursor->GetBlock();
   HInstruction* firstBlockCursor = graph->GetEntryBlock()->GetLastInstruction();
@@ -303,7 +304,7 @@ HInstruction* ArtUtils::InjectMethodCall(HInstruction* instruction_cursor,
   CHECK(entryBlock != nullptr);
 
   const DexFile& current = graph->GetDexFile();
-  const CodelibSymbols* symbols = env->getCodelibSymbols(&current);
+  auto symbols = env->getCodelibSymbols(&current);
   const uint32_t DEX_PC = 0;
 
   // VTableIndex
@@ -328,26 +329,26 @@ HInstruction* ArtUtils::InjectMethodCall(HInstruction* instruction_cursor,
   return invokeInstruction;
 }
 
-std::string ArtUtils::GetMethodName(HInvoke* invoke, bool signature) {
+string ArtUtils::GetMethodName(HInvoke* invoke, bool signature) {
   return PrettyMethod(invoke->GetDexMethodIndex(), invoke->GetBlock()->GetGraph()->GetDexFile(), signature);
 }
 
-std::string ArtUtils::GetMethodSignature(const HInvoke* invoke) {
+string ArtUtils::GetMethodSignature(const HInvoke* invoke) {
   const DexFile& dexfile = invoke->GetBlock()->GetGraph()->GetDexFile();
   auto method_idx = invoke->GetDexMethodIndex();
   const DexFile::MethodId& method_id = dexfile.GetMethodId(method_idx);
 
-  const std::string method_class = dexfile.GetMethodDeclaringClassDescriptor(method_id);
-  const std::string method_name = dexfile.GetMethodName(method_id);
-  const std::string method_signature = dexfile.GetMethodSignature(method_id).ToString();
+  const string method_class = dexfile.GetMethodDeclaringClassDescriptor(method_id);
+  const string method_name = dexfile.GetMethodName(method_id);
+  const string method_signature = dexfile.GetMethodSignature(method_id).ToString();
 
-  const std::string fully_qualified_method_name = (method_class + method_name + method_signature);
+  const string fully_qualified_method_name = (method_class + method_name + method_signature);
 
   return fully_qualified_method_name;
 }
 
-std::string ArtUtils::GetDexFileName(const HGraph* graph) {
-  std::string dex_name = graph->GetDexFile().GetLocation();
+string ArtUtils::GetDexFileName(const HGraph* graph) {
+  string dex_name = graph->GetDexFile().GetLocation();
   return dex_name;
 }
 
@@ -391,9 +392,9 @@ bool ArtUtils::IsNativeMethod(HInvoke* instruction) {
  * ArrayType:
  *     [ ComponentType
  */
-void ArtUtils::ExtractMethodArguments(const std::string &signature, vector<string> &result) {
-  std::string classBuffer = "";
-  std::string paramBuffer = "";
+void ArtUtils::ExtractMethodArguments(const string &signature, vector<string> &result) {
+  string classBuffer = "";
+  string paramBuffer = "";
 
   bool parsingStarted = false;
 
@@ -420,9 +421,9 @@ void ArtUtils::ExtractMethodArguments(const std::string &signature, vector<strin
       classBuffer += character;
 
       if (!paramBuffer.empty()) {
-        result.push_back(std::string(paramBuffer + classBuffer));
+        result.push_back(string(paramBuffer + classBuffer));
       } else {
-        result.push_back(std::string(classBuffer));
+        result.push_back(string(classBuffer));
       }
       paramBuffer.clear();
       classBuffer.clear();
@@ -435,7 +436,7 @@ void ArtUtils::ExtractMethodArguments(const std::string &signature, vector<strin
     }
 
     if (paramBuffer.empty()) {
-      result.push_back(std::string(1, character));
+      result.push_back(string(1, character));
       continue;
     } else {
       paramBuffer += character;
@@ -446,15 +447,15 @@ void ArtUtils::ExtractMethodArguments(const std::string &signature, vector<strin
   }
 }
 
-std::string ArtUtils::ExtractMethodReturnValue(const string& method_signature) {
+string ArtUtils::ExtractMethodReturnValue(const string& method_signature) {
   VLOG(artistd) << "ExtractMethodReturnValue() " << method_signature;
-  std::string method_return_value;
+  string method_return_value;
 
-  static const std::string param_end_char = ")";
+  static const string param_end_char = ")";
 
   size_t pos_param_end = method_signature.find(param_end_char);
 
-  if (pos_param_end == std::string::npos) {
+  if (pos_param_end == string::npos) {
     // Invalid Method Signature
     return method_return_value;
   }
@@ -466,7 +467,7 @@ std::string ArtUtils::ExtractMethodReturnValue(const string& method_signature) {
   return method_return_value;
 }
 
-uint32_t ArtUtils::SetupInstructionArguments(HInvoke* instruction, std::vector<HInstruction*>& instruction_arguments) {
+uint32_t ArtUtils::SetupInstructionArguments(HInvoke* instruction, vector<HInstruction*>& instruction_arguments) {
 DCHECK(instruction != nullptr);
 
 uint32_t argument_position = 0;
@@ -479,53 +480,41 @@ return argument_position;
 
 void ArtUtils::SetupFunctionParams(HGraph* graph,
                                    const Injection& injection,
-                                   std::vector<HInstruction*>& function_parameters) {
+                                   vector<HInstruction*>& function_parameters) {
   VLOG(artistd) << "ArtUtils::SetupFunctionParams()";
   if (injection.GetParameters().size() > 0) {
     for (auto && parameter : injection.GetParameters()) {
       switch (parameter->GetType()) {
         case ParameterType::tBoolean: {
-          std::shared_ptr<Boolean> paramBoolean = std::static_pointer_cast<Boolean>(parameter);
-          paramBoolean->GetType();
-          HConstant* constant = graph->GetConstant(Primitive::kPrimBoolean, paramBoolean->GetValue());
-          function_parameters.push_back(constant);
+          auto paramBoolean = static_pointer_cast<const Boolean>(parameter);
+          function_parameters.push_back(graph->GetConstant(Primitive::kPrimBoolean, paramBoolean->GetValue()));
           break;
         }
         case ParameterType::tChar: {
-          std::shared_ptr<Char> paramChar = std::static_pointer_cast<Char>(parameter);
-          const auto value = paramChar->GetValue();
-          HConstant* constant = graph->GetConstant(Primitive::kPrimChar, value);
-          function_parameters.push_back(constant);
+          auto param_char = static_pointer_cast<const Char>(parameter);
+          function_parameters.push_back(graph->GetConstant(Primitive::kPrimChar, param_char->GetValue()));
           break;
         }
         case ParameterType::tByte:
         case ParameterType::tShort:
         case ParameterType::tInteger: {
-          std::shared_ptr<Integer> paramInteger = std::static_pointer_cast<Integer>(parameter);
-          const auto value = paramInteger->GetValue();
-          HIntConstant* constant = graph->GetIntConstant(value);
-          function_parameters.push_back(constant);
+          auto param_integer = static_pointer_cast<const Integer>(parameter);
+          function_parameters.push_back(graph->GetIntConstant(param_integer->GetValue()));
           break;
         }
         case ParameterType::tLong: {
-          std::shared_ptr<Long> paramInteger = std::static_pointer_cast<Long>(parameter);
-          const auto value = paramInteger->GetValue();
-          HLongConstant* constant = graph->GetLongConstant(value);
-          function_parameters.push_back(constant);
+          auto param_integer = static_pointer_cast<const Long>(parameter);
+          function_parameters.push_back(graph->GetLongConstant(param_integer->GetValue()));
           break;
         }
         case ParameterType::tFloat: {
-          std::shared_ptr<Float> paramfloat = std::static_pointer_cast<Float>(parameter);
-          const auto value = paramfloat->GetValue();
-          HFloatConstant* constant = graph->GetFloatConstant(value);
-          function_parameters.push_back(constant);
+          auto param_float = static_pointer_cast<const Float>(parameter);
+          function_parameters.push_back(graph->GetFloatConstant(param_float->GetValue()));
           break;
         }
         case ParameterType::tDouble: {
-          std::shared_ptr<Double> paramDouble = std::static_pointer_cast<Double>(parameter);
-          const auto value = paramDouble->GetValue();
-          auto constant = graph->GetDoubleConstant(value);
-          function_parameters.push_back(constant);
+          auto param_double = static_pointer_cast<const Double>(parameter);
+          function_parameters.push_back(graph->GetDoubleConstant(param_double->GetValue()));
           break;
         }
         case ParameterType::tObject:
@@ -567,8 +556,8 @@ mirror::Class* ArtUtils::GetClassFrom(CompilerDriver* driver,
   return driver->ResolveCompilingMethodsClass(soa, dex_cache, class_loader, &compilation_unit);
 }
 
-std::string ArtUtils::GetDexName(const string& dex_name, const uint32_t dex_file_idx) {
-  std::string dex_namey;
+string ArtUtils::GetDexName(const string& dex_name, const uint32_t dex_file_idx) {
+  string dex_namey;
   if (dex_file_idx == 0) {
     dex_namey = dex_name;
   } else {

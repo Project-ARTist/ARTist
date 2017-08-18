@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @author "Oliver Schranz <oliver.schranz@cispa.saarland>"
  * @author "Sebastian Weisgerber <weisgerber@cispa.saarland>"
  *
  */
@@ -38,8 +37,6 @@ class Integer : public Primitives {
   int32_t GetValue() const {
     return this->value;
   }
-
-  virtual ~Integer() {}
 
   virtual ParameterType GetType() const {
     return ParameterType::tInteger;

@@ -38,6 +38,7 @@
 
 using std::map;
 using std::exception;
+using std::shared_ptr;
 
 namespace art {
 
@@ -46,7 +47,7 @@ namespace art {
  */
 class CodelibSymbols {
  public:
-    CodelibSymbols(const DexFile* dex_file, const CodeLib* codelib, jobject jclass_loader);
+    CodelibSymbols(const DexFile* dex_file, shared_ptr<const CodeLib> codelib, jobject jclass_loader);
 
     const DexFile* getDexFile() const;
 

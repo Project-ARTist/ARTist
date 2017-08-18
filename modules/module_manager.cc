@@ -24,14 +24,14 @@
 
 namespace art {
 
-ModuleManager* ModuleManager::getInstance() {
+ModuleManager& ModuleManager::getInstance() {
   // Automated creation and destruction through `static` modifier.
   static ModuleManager instance;
-  return &instance;
+  return instance;
 }
 
-bool ModuleManager::registerModule(ModuleId id, const Module* module) {
-  CHECK(module != nullptr);
+bool ModuleManager::registerModule(ModuleId id, shared_ptr<const Module> module) {
+  CHECK(module);
   VLOG(artistd) << "ModuleManager: registering module " << id;
 
   if (_modules.find(id) != _modules.end()) {
@@ -41,18 +41,18 @@ bool ModuleManager::registerModule(ModuleId id, const Module* module) {
   return true;
 }
 
-const Module* ModuleManager::getModule(ModuleId id) const {
+shared_ptr<const Module> ModuleManager::getModule(ModuleId id) const {
   if (_modules.find(id) == _modules.end()) {
       return nullptr;
   }
   return _modules.at(id);
 }
 
-const DexfileEnvironment* ModuleManager::getDexFileEnvironment() const {
+shared_ptr<const DexfileEnvironment> ModuleManager::getDexFileEnvironment() const {
   return _dex_file_env;
 }
 
-CodeLibEnvironment* ModuleManager::getCodelibEnvironment(ModuleId id) const {
+shared_ptr<CodeLibEnvironment> ModuleManager::getCodelibEnvironment(ModuleId id) const {
   CHECK(initialized());
   if (_environments.find(id) == _environments.end()) {
       // some modules do not have a codelib, hence no corresponding environment
@@ -63,7 +63,7 @@ CodeLibEnvironment* ModuleManager::getCodelibEnvironment(ModuleId id) const {
   return _environments.at(id);
 }
 
-const map<ModuleId, const Module*> ModuleManager::getModules() const {
+const map<ModuleId, shared_ptr<const Module>> ModuleManager::getModules() const {
   VLOG(artistd) << "ModuleManager: obtaining the modules map with " << _modules.size() << " entries.";
   return _modules;
 }
@@ -75,7 +75,7 @@ void ModuleManager::initializeModules(vector<const DexFile*> dex_files, jobject 
     ErrorHandler::abortCompilation(msg);
   }
 
-  _dex_file_env = new DexfileEnvironment(dex_files);
+  _dex_file_env = make_shared<DexfileEnvironment>(dex_files);
 
   for (auto it : _modules) {
     auto id = it.first;
@@ -101,7 +101,7 @@ void ModuleManager::initializeModules(vector<const DexFile*> dex_files, jobject 
         ErrorHandler::abortCompilation(msg);
       }
       _dex_file_env->declareCodelib(codelib_dexfile);
-      _environments[id] = new CodeLibEnvironment(_dex_file_env, codelib_dexfile, codelib, jclass_loader);
+      _environments[id] = make_shared<CodeLibEnvironment>(_dex_file_env, codelib_dexfile, codelib, jclass_loader);
     }
   }
 
@@ -121,7 +121,7 @@ void ModuleManager::initializeModules(vector<const DexFile*> dex_files, jobject 
    * @param searched_signature the signature of the searched class
    * @return whether the dex file defines the class
    */
-  bool ModuleManager::definesClass(const DexFile *dexfile, const MethodSignature searched_signature) const {
+  bool ModuleManager::definesClass(const DexFile* dexfile, const MethodSignature searched_signature) const {
     VLOG(artistd) << "Check whether " << dexfile->GetLocation() << " defines " << searched_signature;
     for (uint16_t idx = 0; idx < dexfile->NumClassDefs(); idx++) {
       auto class_def = &dexfile->GetClassDef(idx);
@@ -135,19 +135,5 @@ void ModuleManager::initializeModules(vector<const DexFile*> dex_files, jobject 
     }
     VLOG(artistd) << "Could not find signature " << searched_signature;
     return false;
-  }
-
-  ModuleManager::~ModuleManager() {
-      // FIXME this crashes the compiler
-      // unlink and delete modules and environments
-//        for (auto pair : _modules) {
-//            _modules.erase(pair.first);
-//            delete pair.second;
-//        }
-//        for (auto pair : _environments) {
-//            _environments.erase(pair.first);
-//            delete pair.second;
-//            VLOG(artist) << "successfully deleted environment";
-//        }
   }
 }  // namespace art

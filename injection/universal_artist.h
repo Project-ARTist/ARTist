@@ -25,6 +25,9 @@
 
 #include "optimizing/artist/artist.h"
 
+using std::unordered_map;
+using std::enable_shared_from_this;
+
 namespace art {
 
 /**
@@ -33,7 +36,7 @@ namespace art {
  * where and when.
  * This is well suited to build, e.g., inline reference monitors or logging modules where code is only added.
  */
-class HUniversalArtist : public HArtist {
+class HUniversalArtist : public HArtist, public enable_shared_from_this<HUniversalArtist> {
  public:
   HUniversalArtist(
     HGraph* graph,
@@ -49,18 +52,18 @@ class HUniversalArtist : public HArtist {
         , is_in_ssa_form
 #endif
         , pass_name
-        , stats) {
-    // Nothing
-  }
+        , stats)
+      , injections {}
+      , injection_table {} {}
 
   // artist module interface
   void SetupModule() OVERRIDE;
   void RunModule() OVERRIDE;
 
-  const std::vector<Injection>& GetInjections();
-  const std::unordered_map<std::string, std::vector<Injection>>& GetInjectionTable();
-  const std::vector<Injection> GetInjectionTableEntry(const std::string& callback_key);
-  bool EmplaceTableEntry(const std::string& callback_key, const Injection& single_injection);
+  const vector<Injection>& GetInjections();
+  const unordered_map<string, vector<Injection>>& GetInjectionTable();
+  const vector<Injection> GetInjectionTableEntry(const string& callback_key);
+  bool EmplaceTableEntry(const string& callback_key, const Injection& single_injection);
 
  protected:
   /**
@@ -69,14 +72,15 @@ class HUniversalArtist : public HArtist {
    *
    * @return list of injection policies
    */
-  virtual std::vector<Injection>& ProvideInjections() const = 0;
+  virtual vector<Injection> ProvideInjections() const = 0;
 
  private:
   void SetupInjections();
-  std::vector<Injection> injections;
+
+  vector<Injection> injections;
 
   // Use @see VisitorKeys
-  std::unordered_map<std::string, std::vector<Injection>> injection_table;
+  unordered_map<string, vector<Injection>> injection_table;
 };
 
 }  // namespace art
