@@ -47,8 +47,14 @@ namespace art {
  */
 class CodelibSymbols {
  public:
-    CodelibSymbols(const DexFile* dex_file, shared_ptr<const CodeLib> codelib, jobject jclass_loader);
-
+    CodelibSymbols(
+      const DexFile* dex_file
+      , shared_ptr<const CodeLib> codelib
+#ifdef BUILD_OREO
+      , jobject jclass_loader ATTRIBUTE_UNUSED);
+#else
+      , jobject jclass_loader);
+#endif
     const DexFile* getDexFile() const;
 
     TypeIdx getTypeIdx() const;

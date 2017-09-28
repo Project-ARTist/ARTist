@@ -27,36 +27,41 @@
 
 namespace art {
 
-  MethodInfo::MethodInfo(
+  ArtistMethodInfo::ArtistMethodInfo(
     HGraph* methodGraph,
     const DexCompilationUnit& compUnit )
     : graph(methodGraph)
     , compilationUnit(compUnit)
+#ifdef BUILD_OREO
+    , methodName(graph->GetDexFile().PrettyMethod(graph->GetMethodIdx(), false))
+    , methodNameWithSignature(graph->GetDexFile().PrettyMethod(graph->GetMethodIdx(), true)) {
+#else
     , methodName(PrettyMethod(graph->GetMethodIdx(), graph->GetDexFile(), false))
     , methodNameWithSignature(PrettyMethod(graph->GetMethodIdx(), graph->GetDexFile(), true)) {
+#endif
     // the other field will be set in the factory
   }
 
-  const string& MethodInfo::GetMethodName(bool signature) const {
+  const string& ArtistMethodInfo::GetMethodName(bool signature) const {
     if (signature) {
       return methodNameWithSignature;
     };
     return methodName;
   }
 
-  bool MethodInfo::IsStatic() const {
+  bool ArtistMethodInfo::IsStatic() const {
     return compilationUnit.IsStatic();
   }
 
-  const vector<HParameterValue*>& MethodInfo::GetParams() const {
+  const vector<HParameterValue*>& ArtistMethodInfo::GetParams() const {
     return params;
   }
 
-  const vector<string>& MethodInfo::GetParamTypes() const {
+  const vector<string>& ArtistMethodInfo::GetParamTypes() const {
     return paramTypes;
   }
 
-  bool MethodInfo::IsStringParam(HParameterValue* param) const {
+  bool ArtistMethodInfo::IsStringParam(HParameterValue* param) const {
     DCHECK(param != nullptr);
 
     int arg_index = param->GetIndex();
@@ -73,18 +78,18 @@ namespace art {
     return paramTypes[arg_index].compare(JavaEnvironment::C_STRING) == 0;
   }
 
-  bool MethodInfo::IsThisParameter(HParameterValue* param) const {
+  bool ArtistMethodInfo::IsThisParameter(HParameterValue* param) const {
     // CanBeNull is implemented as !is_this
     return !param->CanBeNull();
   }
 
 
-HGraph* MethodInfo::GetGraph() const {
+HGraph* ArtistMethodInfo::GetGraph() const {
   return graph;
 }
 
-ostream &operator<<(ostream &os, const MethodInfo &info) {
-  os << "MethodInfo { method: ";
+ostream &operator<<(ostream &os, const ArtistMethodInfo &info) {
+  os << "ArtistMethodInfo { method: ";
   if (info.IsStatic()) {
     os << "static ";
   }

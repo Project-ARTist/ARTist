@@ -93,7 +93,9 @@ void HArtist::Run() {
     VLOG(artistd) << "HArtist::Run() SKIPPING CodeLib " << method_name << " (" << dexFileName << ")";
     return;
   }
-  const string method_signature = PrettyMethod(graph_->GetMethodIdx(), graph_->GetDexFile());
+  // TODO: with or without signature?
+  bool with_signature = true;
+  const string method_signature = graph_->GetDexFile().PrettyMethod(graph_->GetMethodIdx(), with_signature);
   ArtistLog::LogMethodCount(++method_counter);
   VLOG(artistd) << std::endl;
   VLOG(artist) << "Artist #" << method_counter << ": " << method_signature<< " (" << dexFileName << ")";
@@ -122,7 +124,7 @@ HInstruction* HArtist::GetCodeLibInstruction(HInstruction *instruction_cursor) {
   return this->codelib_instruction;
 }
 
-const MethodInfo& HArtist::GetMethodInfo() const {
+const ArtistMethodInfo& HArtist::GetMethodInfo() const {
   VLOG(artistd) << "HArtist::GetMethodInfo(): " << this->method_info << std::flush;
   return this->method_info;
 }

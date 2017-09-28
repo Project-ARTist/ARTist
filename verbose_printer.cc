@@ -28,10 +28,14 @@
 #include "dex_file-inl.h"
 #include "method_info_factory.h"
 
+#ifdef BUILD_OREO
+#include "android-base/stringprintf.h"
+using android::base::StringPrintf;
+#endif
 
 namespace art {
 
-  VerbosePrinter::VerbosePrinter(const MethodInfo& info)
+  VerbosePrinter::VerbosePrinter(const ArtistMethodInfo& info)
       : StringPrettyPrinter(info.GetGraph()), methodInfo(info) { }
 
   VerbosePrinter::VerbosePrinter(HGraph* graph, const DexCompilationUnit& dex_compilation_unit)
@@ -127,15 +131,16 @@ namespace art {
 
   void VerbosePrinter::PrintPostInstruction(HInstruction* instruction) {
     if (instruction->InputCount() != 0) {
+      HInputsRef inputs = instruction->GetInputs();
       PrintString("(");
       bool first = true;
-      for (HInputIterator it(instruction); !it.Done(); it.Advance()) {
+      for (auto && input : inputs) {
         if (first) {
           first = false;
         } else {
           PrintString(", ");
         }
-        PrintInt(it.Current()->GetId());
+        PrintInt(input->GetId());
       }
       PrintString(")");
     }

@@ -55,7 +55,11 @@ void HLogtimization::RunModule() {
 
   const DexFile& dexFile = graph_->GetDexFile();
   const string& dexFilePath = dexFile.GetLocation();
+#ifdef BUILD_OREO
+  const string methodSignature = dexFile.PrettyMethod(graph_->GetMethodIdx());
+#else
   const string methodSignature = PrettyMethod(graph_->GetMethodIdx(), dexFile);
+#endif
 
   VLOG(artist) << "Method: " << methodSignature << " (Dexfile: " << dexFilePath << ")";
   VLOG(artist) << dexFile;
