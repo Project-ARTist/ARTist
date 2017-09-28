@@ -26,8 +26,8 @@
 
 namespace art {
 
-const MethodInfo MethodInfoFactory::obtain(HGraph *method_graph, const DexCompilationUnit &comp_unit) {
-  MethodInfo info(method_graph, comp_unit);
+const ArtistMethodInfo MethodInfoFactory::obtain(HGraph *method_graph, const DexCompilationUnit &comp_unit) {
+  ArtistMethodInfo info(method_graph, comp_unit);
 
   string signature_string = method_graph->GetDexFile().GetMethodSignature(
       method_graph->GetDexFile().GetMethodId(method_graph->GetMethodIdx())).ToString();

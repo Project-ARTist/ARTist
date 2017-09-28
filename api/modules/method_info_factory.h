@@ -30,14 +30,14 @@ namespace art {
 
 using std::map;
 
-class MethodInfo;
+class ArtistMethodInfo;
 
 /**
  * Creates method info objects for method graphs.
  */
 class MethodInfoFactory {
  public:
-  static const MethodInfo obtain(HGraph *method_graph, const DexCompilationUnit &comp_unit);
+  static const ArtistMethodInfo obtain(HGraph *method_graph, const DexCompilationUnit &comp_unit);
 };
 
 }  // namespace art

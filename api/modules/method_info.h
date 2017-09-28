@@ -38,9 +38,9 @@ namespace art {
 /**
  * Wraps information about and convenience methods to work with the current method.
  */
-class MethodInfo {
+class ArtistMethodInfo {
  public:
-  MethodInfo(HGraph* methodGraph, const DexCompilationUnit& compUnit);
+  ArtistMethodInfo(HGraph* methodGraph, const DexCompilationUnit& compUnit);
 
   // method
   const string& GetMethodName(bool signature = false) const;
@@ -64,7 +64,7 @@ class MethodInfo {
   friend class MethodInfoFactory;
 };
 
-ostream& operator<<(ostream& os, const MethodInfo& info);
+ostream& operator<<(ostream& os, const ArtistMethodInfo& info);
 
 }  // namespace art
 

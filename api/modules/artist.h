@@ -48,7 +48,7 @@ class OptimizingCompilerStats;
  */
 class HArtist : public HOptimization {
  public:
-  explicit HArtist(const MethodInfo& method_info,
+  explicit HArtist(const ArtistMethodInfo& method_info,
 #ifdef BUILD_MARSHMALLOW
           bool is_in_ssa_form = true,
 #endif
@@ -57,7 +57,7 @@ class HArtist : public HOptimization {
 
   HInstruction* GetCodeLibInstruction(HInstruction *instruction_cursor = nullptr);
 
-  const MethodInfo& GetMethodInfo() const;
+  const ArtistMethodInfo& GetMethodInfo() const;
 
   void setDexfileEnvironment(shared_ptr<const DexfileEnvironment> environment);
   shared_ptr<const DexfileEnvironment> getDexfileEnvironment() const;
@@ -73,7 +73,7 @@ class HArtist : public HOptimization {
   shared_ptr<CodeLibEnvironment> _codelib_env;
 
  protected:
-  const MethodInfo& _method_info;
+  const ArtistMethodInfo& _method_info;
 
   static uint32_t _method_counter;
 

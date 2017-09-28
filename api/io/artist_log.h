@@ -41,8 +41,8 @@ namespace art {
 
     static void ForceVerboseLogging();
 
-    static void LogMethod(const MethodInfo& info);
-    static void LogMethod(const MethodInfo& info, std::ostream& out);
+    static void LogMethod(const ArtistMethodInfo& info);
+    static void LogMethod(const ArtistMethodInfo& info, std::ostream& out);
 
     static void LogInstruction(HInstruction* instruction,
                                const DexCompilationUnit& _dex_compilation_unit);

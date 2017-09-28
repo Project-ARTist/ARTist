@@ -56,7 +56,11 @@ CodeLibEnvironment::CodeLibEnvironment(shared_ptr<const DexfileEnvironment> dexf
   // init class loader
   ScopedObjectAccess soa(Thread::Current());
   StackHandleScope<2> hs(soa.Self());
+#ifdef BUILD_OREO
+  _class_loader = hs.NewHandle(soa.Decode<mirror::ClassLoader>(_jclass_loader));
+#else
   _class_loader = hs.NewHandle(soa.Decode<mirror::ClassLoader*>(_jclass_loader));
+#endif  // BUILD_OREO
 
   Locks::mutator_lock_->SharedUnlock(Thread::Current());
 
@@ -146,6 +150,8 @@ MemberOffset CodeLibEnvironment::findInstanceFieldOffset() const {
 
 #ifdef BUILD_MARSHMALLOW
   auto codelib_dex_cache = hs.NewHandle(_class_linker->FindDexCache(*_codelib_dex));
+#elif defined BUILD_OREO
+  auto codelib_dex_cache = hs.NewHandle(_class_linker->FindDexCache(Thread::Current(), *_codelib_dex));
 #else
   auto codelib_dex_cache = hs.NewHandle(_class_linker->FindDexCache(Thread::Current(), *_codelib_dex, false));
 #endif
@@ -182,9 +188,15 @@ MethodVtableIdx CodeLibEnvironment::findMethodVtableIdx(const MethodSignature& s
   // get all the required objects
   ClassLinker* class_linker = Runtime::Current()->GetClassLinker();
   StackHandleScope<2> hs(soa.Self());
+#ifdef BUILD_OREO
+//  Handle<mirror::ClassLoader> class_loader(hs.NewHandle(soa.Decode<mirror::ClassLoader>(_jclass_loader)));
+#else
   Handle<mirror::ClassLoader> class_loader(hs.NewHandle(soa.Decode<mirror::ClassLoader*>(_jclass_loader)));
+#endif
 #ifdef BUILD_MARSHMALLOW
   Handle<mirror::DexCache> dex_cache(hs.NewHandle(class_linker->FindDexCache(*_codelib_dex)));
+#elif defined BUILD_OREO
+  Handle<mirror::DexCache> dex_cache(hs.NewHandle(class_linker->FindDexCache(Thread::Current(), *_codelib_dex)));
 #else
   Handle<mirror::DexCache> dex_cache(hs.NewHandle(class_linker->FindDexCache(Thread::Current(), *_codelib_dex, false)));
 #endif

@@ -24,8 +24,14 @@
 
 namespace art {
 
-CodelibSymbols::CodelibSymbols(const DexFile* dex_file, shared_ptr<const CodeLib> codelib, jobject jclass_loader)
-        : _dex_file(dex_file) {
+CodelibSymbols::CodelibSymbols(
+    const DexFile* dex_file
+    , shared_ptr<const CodeLib> codelib
+    , jobject jclass_loader
+#ifdef BUILD_OREO
+    ATTRIBUTE_UNUSED
+#endif
+) : _dex_file(dex_file) {
   // init type index
   auto codelib_class = codelib->getCodeClass();
   if (!ArtUtils::FindTypeIdxFromName(dex_file, codelib_class, &_type_idx)) {
@@ -33,7 +39,9 @@ CodelibSymbols::CodelibSymbols(const DexFile* dex_file, shared_ptr<const CodeLib
     ErrorHandler::abortCompilation(msg);
   }
 
+#ifndef BUILD_OREO
   ClassLinker* class_linker = Runtime::Current()->GetClassLinker();
+#endif
 #ifdef BUILD_MARSHMALLOW
   // released in destructor
   ReaderMutexLock mu(Thread::Current(), *class_linker->DexLock());
@@ -41,9 +49,16 @@ CodelibSymbols::CodelibSymbols(const DexFile* dex_file, shared_ptr<const CodeLib
   // get all the required objects
   ScopedObjectAccess soa(Thread::Current());
   StackHandleScope<2> hs(soa.Self());
+#ifdef BUILD_OREO
+//  Handle<mirror::ClassLoader> class_loader(hs.NewHandle(soa.Decode<mirror::ClassLoader>(jclass_loader)));
+#else
   Handle<mirror::ClassLoader> class_loader(hs.NewHandle(soa.Decode<mirror::ClassLoader*>(jclass_loader)));
+#endif  // BUILD_OREO
+
 #ifdef BUILD_MARSHMALLOW
   Handle<mirror::DexCache> dex_cache(hs.NewHandle(class_linker->FindDexCache(*dex_file)));
+#elif defined BUILD_OREO
+//  Handle<mirror::DexCache> dex_cache(hs.NewHandle(class_linker->FindDexCache(Thread::Current(), *dex_file)));
 #else
   Handle<mirror::DexCache> dex_cache(hs.NewHandle(class_linker->FindDexCache(Thread::Current(), *dex_file, false)));
 #endif
