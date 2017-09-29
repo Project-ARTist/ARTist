@@ -97,7 +97,7 @@ void HArtist::Run() {
 #ifdef BUILD_OREO
   const string method_signature = graph_->GetDexFile().PrettyMethod(graph_->GetMethodIdx(), with_signature);
 #else
-  const string method_signature = PrettyMethod(invoke->GetDexMethodIndex(), invoke->GetBlock()->GetGraph()->GetDexFile(), with_signature);
+  const string method_signature = const string method_signature = PrettyMethod(graph_->GetMethodIdx(), graph_->GetDexFile(), with_signature);;
 #endif
   ArtistLog::LogMethodCount(++_method_counter);
   VLOG(artistd) << std::endl;
