@@ -70,20 +70,22 @@ namespace art {
     static string GetMethodName(HInvoke* invoke, bool signature = false);
     static string GetMethodSignature(const HInvoke* invoke);
 
-        static string GetDexFileName(const HGraph* graph);
+    static string GetDexFileName(const HGraph* graph);
 
     static void DumpFields(const HGraph* graph);
     static void DumpFields(const DexFile& dex_file);
 
     static HInstruction* InjectCodeLib(const HInstruction* instruction_cursor,
                                        shared_ptr<CodeLibEnvironment> env,
+                                       const DexCompilationUnit& dex_compilation_unit,
                                        const bool entry_block_injection = true);
+
     static HInstruction* InjectMethodCall(HInstruction* instruction_cursor,
-                                       const string& method_signature,
-                                       vector<HInstruction*>& function_params,
+                                          const string& method_signature,
+                                          vector<HInstruction*>& function_params,
                                           shared_ptr<CodeLibEnvironment> env,
-                                       const Primitive::Type return_type = Primitive::Type::kPrimVoid,
-                                       const bool inject_before = true);
+                                          const Primitive::Type return_type = Primitive::Type::kPrimVoid,
+                                          const bool inject_before = true);
 
     static void ExtractMethodArguments(const string &signature, vector<string> &result);
     static string ExtractMethodReturnValue(const string& method_signature);
@@ -105,7 +107,6 @@ namespace art {
 
 #endif
   };
-
 }  // namespace art
 
 #endif  // ART_ARTIST_UTILS_H_

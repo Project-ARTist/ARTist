@@ -91,12 +91,20 @@ TypeIdx ArtUtils::FindTypeIdxFromName(const HGraph* graph, const string & search
 
 TypeIdx ArtUtils::FindTypeIdxFromName(const DexFile& dex_file, const string & searched_type_name) {
   for (uint32_t i = 0; i < dex_file.NumTypeIds(); i++) {
+#ifdef BUILD_OREO
+    const DexFile::TypeId& typeId = dex_file.GetTypeId(dex::TypeIndex(i));
+#else
     const DexFile::TypeId& typeId = dex_file.GetTypeId(i);
+#endif
     string type_name(dex_file.GetTypeDescriptor(typeId));
     if (type_name.compare(searched_type_name) == 0) {
-        TypeIdx typeIdx = dex_file.GetIndexForTypeId(typeId);
-        VLOG(artistd) << "Returning TypeIdx: " << typeIdx << " Type: " << searched_type_name;
+        auto typeIdx = dex_file.GetIndexForTypeId(typeId);
+        VLOG(artistd) << " Returning TypeIdx: " << typeIdx << " Type: " << searched_type_name;
+#ifdef BUILD_OREO
+        return typeIdx.index_;
+#else
         return typeIdx;
+#endif
     }
   }
   auto msg("Could not find type" + searched_type_name);
@@ -150,8 +158,12 @@ void ArtUtils::DumpTypes(const HGraph* graph) {
 void ArtUtils::DumpTypes(const DexFile& dex_file) {
   VLOG(artistd) << "DumpTypes()";
 
-  for (unsigned int i = 0; i < dex_file.NumTypeIds(); i++) {
+  for (uint32_t i = 0; i < dex_file.NumTypeIds(); i++) {
+#ifdef BUILD_OREO
+    const DexFile::TypeId& typeID = dex_file.GetTypeId(dex::TypeIndex(i));
+#else
     const DexFile::TypeId& typeID = dex_file.GetTypeId(i);
+#endif
     string type_name(dex_file.GetTypeDescriptor(typeID));
 
     VLOG(artistd) << type_name;
@@ -165,7 +177,7 @@ void ArtUtils::DumpFields(const HGraph* graph) {
 void ArtUtils::DumpFields(const DexFile& dex_file) {
   VLOG(artistd) << "DumpFields()";
 
-  for (unsigned int i = 0; i < dex_file.NumFieldIds(); i++) {
+  for (uint32_t i = 0; i < dex_file.NumFieldIds(); i++) {
     const DexFile::FieldId& fieldId = dex_file.GetFieldId(i);
     const string fieldName(dex_file.GetFieldName(fieldId));
     const string typeName(dex_file.GetFieldTypeDescriptor(fieldId));
@@ -185,6 +197,11 @@ void ArtUtils::DumpFields(const DexFile& dex_file) {
  */
 HInstruction* ArtUtils::InjectCodeLib(const HInstruction* instruction_cursor,
                                       shared_ptr<CodeLibEnvironment> env,
+#ifdef BUILD_OREO
+                                      const DexCompilationUnit& dex_compilation_unit,
+#else
+                                      const DexCompilationUnit& dex_compilation_unit ATTRIBUTE_UNUSED,
+#endif
                                       const bool entry_block_injection) {
   CHECK(instruction_cursor != nullptr);
   CHECK(env != nullptr);
@@ -213,11 +230,10 @@ HInstruction* ArtUtils::InjectCodeLib(const HInstruction* instruction_cursor,
   , 0);
 #elif defined BUILD_OREO
   const DexFile& dex_file = graph->GetDexFile();
-  const DexCompilationUnit& dex_compilation_unit = nullptr;
   ClassLinker* class_linker = dex_compilation_unit.GetClassLinker();
 //  ClassLinker* class_linker = Runtime::Current()->GetClassLinker();
   const DexFile& codelib_dexfile(*env->getDexFile());
-  ArtMethod* art_method = graph->GetArtMethod();
+//  ArtMethod* art_method = graph->GetArtMethod();
   ScopedObjectAccess soa(Thread::Current());
   StackHandleScope<1> hs(soa.Self());
 
@@ -399,13 +415,33 @@ HInstruction* ArtUtils::InjectMethodCall(HInstruction* instruction_cursor,
   const uint32_t DEX_PC = 0;
 
   // VTableIndex
+#ifdef BUILD_OREO
+  Locks::mutator_lock_->SharedLock(Thread::Current());
+  ClassLinker* class_linker = Runtime::Current()->GetClassLinker();
+  ArtMethod* resolved_method =
+      class_linker->ResolveMethod<ClassLinker::ResolveMode::kNoICCECheckForCache>(
+          Thread::Current(),
+          symbols->getMethodIdx(method_signature),
+          graph->GetArtMethod(),
+          InvokeType::kVirtual);
+  Locks::mutator_lock_->SharedUnlock(Thread::Current());
+
+  HInvokeVirtual* invokeInstruction = new (allocator) HInvokeVirtual(allocator,
+                                                                     (uint32_t) function_params.size(),
+                                                                     return_type,
+                                                                     DEX_PC,
+                                                                     symbols->getMethodIdx(method_signature),
+                                                                     resolved_method,
+                                                                     (uint32_t) env->getMethodVtableIdx(method_signature));
+#else
+
   HInvokeVirtual* invokeInstruction = new (allocator) HInvokeVirtual(allocator,
                                                                      (uint32_t) function_params.size(),
                                                                      return_type,
                                                                      DEX_PC,
                                                                      symbols->getMethodIdx(method_signature),
                                                                      (uint32_t) env->getMethodVtableIdx(method_signature));
-
+#endif
   ArtUtils::SetupInstructionArguments(invokeInstruction, function_params);
 
   invokeInstruction->SetBlock(instructionBlock);

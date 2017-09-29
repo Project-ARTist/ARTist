@@ -116,9 +116,16 @@ void HArtist::Setup() {
 HInstruction* HArtist::GetCodeLibInstruction(HInstruction *instruction_cursor) {
   if (this->codelib_instruction == nullptr) {
     if (instruction_cursor == nullptr) {
-      this->codelib_instruction = ArtUtils::InjectCodeLib(graph_->GetEntryBlock()->GetLastInstruction(), _codelib_env);
+      this->codelib_instruction = ArtUtils::InjectCodeLib(
+          graph_->GetEntryBlock()->GetLastInstruction(),
+          _codelib_env,
+          this->method_info.GetDexCompilationUnit());
     } else {
-      this->codelib_instruction = ArtUtils::InjectCodeLib(instruction_cursor, _codelib_env, false);
+      this->codelib_instruction = ArtUtils::InjectCodeLib(
+          instruction_cursor,
+          _codelib_env,
+          this->method_info.GetDexCompilationUnit(),
+          false);
     }
   }
   return this->codelib_instruction;
