@@ -45,6 +45,7 @@ LIBART_COMPILER_SRC_FILES += \
     optimizing/artist/method_info.cc \
     optimizing/artist/method_info_factory.cc \
     optimizing/artist/param_finder.cc \
+    optimizing/artist/modules/module.cc \
     optimizing/artist/modules/module_manager.cc \
     optimizing/artist/modules/logtimization/logtimization_artist.cc \
     optimizing/artist/modules/logtimization/logtimization_module.cc \

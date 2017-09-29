@@ -65,20 +65,20 @@ class ModuleManager {
 
 // regular logic
  public:
-    bool registerModule(ModuleId id, shared_ptr<const Module> module);
+    bool registerModule(ModuleId id, shared_ptr<Module> module);
 
-    shared_ptr<const Module> getModule(ModuleId id) const;
+    shared_ptr<Module> getModule(ModuleId id) const;
     shared_ptr<const DexfileEnvironment> getDexFileEnvironment() const;
     shared_ptr<CodeLibEnvironment> getCodelibEnvironment(ModuleId id) const;
 
-    const map<ModuleId, shared_ptr<const Module>> getModules() const;
+    const map<ModuleId, shared_ptr<Module>> getModules() const;
 
     void initializeModules(vector<const DexFile*> dex_files, jobject jclass_loader);
     bool initialized() const;
 
  private:
     atomic_bool init_flag;
-    map<ModuleId, shared_ptr<const Module>> _modules;
+    map<ModuleId, shared_ptr<Module>> _modules;
     shared_ptr<DexfileEnvironment> _dex_file_env;
     map<ModuleId, shared_ptr<CodeLibEnvironment>> _environments;
 };

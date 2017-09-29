@@ -49,6 +49,23 @@ class Module {
    * @return codelib or nullptr
    */
   virtual shared_ptr<const CodeLib> createCodeLib() const = 0;
+
+  /**
+   * Set the enabled state of the ARTist module.
+   *
+   * @param enabled new enabled state
+   */
+  void setEnabled(bool enabled);
+
+  /**
+   * Return whether the module is currently enabled
+   *
+   * @return enabled state
+   */
+  bool isEnabled() const;
+
+ private:
+  bool _enabled = true;
 };
 
 }  // namespace art
