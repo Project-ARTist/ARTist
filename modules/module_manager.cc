@@ -30,7 +30,7 @@ ModuleManager& ModuleManager::getInstance() {
   return instance;
 }
 
-bool ModuleManager::registerModule(ModuleId id, shared_ptr<const Module> module) {
+bool ModuleManager::registerModule(ModuleId id, shared_ptr<Module> module) {
   CHECK(module);
   VLOG(artistd) << "ModuleManager: registering module " << id;
 
@@ -41,7 +41,7 @@ bool ModuleManager::registerModule(ModuleId id, shared_ptr<const Module> module)
   return true;
 }
 
-shared_ptr<const Module> ModuleManager::getModule(ModuleId id) const {
+shared_ptr<Module> ModuleManager::getModule(ModuleId id) const {
   if (_modules.find(id) == _modules.end()) {
       return nullptr;
   }
@@ -63,7 +63,7 @@ shared_ptr<CodeLibEnvironment> ModuleManager::getCodelibEnvironment(ModuleId id)
   return _environments.at(id);
 }
 
-const map<ModuleId, shared_ptr<const Module>> ModuleManager::getModules() const {
+const map<ModuleId, shared_ptr<Module>> ModuleManager::getModules() const {
   VLOG(artistd) << "ModuleManager: obtaining the modules map with " << _modules.size() << " entries.";
   return _modules;
 }
@@ -97,11 +97,14 @@ void ModuleManager::initializeModules(vector<const DexFile*> dex_files, jobject 
         }
       }
       if (codelib_dexfile == nullptr) {
-        auto msg = "Could not find dexfile defining codelib class " + signature;
-        ErrorHandler::abortCompilation(msg);
+        auto msg = "Could not find dexfile defining codelib class " + signature
+                   + " (requires codelib). Deactivating module " + id + ".";
+        VLOG(artistd) << msg;
+        module->setEnabled(false);
+      } else {
+        _dex_file_env->declareCodelib(codelib_dexfile);
+        _environments[id] = make_shared<CodeLibEnvironment>(_dex_file_env, codelib_dexfile, codelib, jclass_loader);
       }
-      _dex_file_env->declareCodelib(codelib_dexfile);
-      _environments[id] = make_shared<CodeLibEnvironment>(_dex_file_env, codelib_dexfile, codelib, jclass_loader);
     }
   }
 
