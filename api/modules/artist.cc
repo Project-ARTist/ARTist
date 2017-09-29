@@ -47,7 +47,7 @@ namespace art {
 
 uint32_t HArtist::_method_counter = 0;
 
-HArtist::HArtist(const MethodInfo& method_info,
+HArtist::HArtist(const ArtistMethodInfo& method_info,
 #ifdef BUILD_MARSHMALLOW
                  bool is_in_ssa_form,
 #endif
@@ -117,9 +117,16 @@ void HArtist::Setup() {
 HInstruction* HArtist::GetCodeLibInstruction(HInstruction *instruction_cursor) {
   if (this->_codelib_instruction == nullptr) {
     if (instruction_cursor == nullptr) {
-      this->_codelib_instruction = ArtUtils::InjectCodeLib(graph_->GetEntryBlock()->GetLastInstruction(), _codelib_env);
+      this->_codelib_instruction = ArtUtils::InjectCodeLib(
+          graph_->GetEntryBlock()->GetLastInstruction(),
+          _codelib_env,
+          this->_method_info.GetDexCompilationUnit());
     } else {
-      this->_codelib_instruction = ArtUtils::InjectCodeLib(instruction_cursor, _codelib_env, false);
+      this->_codelib_instruction = ArtUtils::InjectCodeLib(
+          instruction_cursor,
+          _codelib_env,
+          this->_method_info.GetDexCompilationUnit(),
+          false);
     }
   }
   return this->_codelib_instruction;

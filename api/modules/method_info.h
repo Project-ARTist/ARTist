@@ -53,6 +53,8 @@ class ArtistMethodInfo {
   bool IsStringParam(HParameterValue* param) const;
   bool IsThisParameter(HParameterValue* param) const;
 
+  const DexCompilationUnit& GetDexCompilationUnit() const;
+
  private:
   HGraph* graph;
   const DexCompilationUnit& compilationUnit;

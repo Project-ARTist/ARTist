@@ -49,7 +49,11 @@ namespace art {
     return methodName;
   }
 
-  bool ArtistMethodInfo::IsStatic() const {
+const DexCompilationUnit& ArtistMethodInfo::GetDexCompilationUnit() const {
+  return compilationUnit;
+}
+
+bool ArtistMethodInfo::IsStatic() const {
     return compilationUnit.IsStatic();
   }
 
