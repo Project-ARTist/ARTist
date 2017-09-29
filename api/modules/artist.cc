@@ -92,9 +92,9 @@ void HArtist::Run() {
     return;
   }
 
+#ifdef BUILD_OREO
   // TODO: with or without signature?
   bool with_signature = true;
-#ifdef BUILD_OREO
   const string method_signature = graph_->GetDexFile().PrettyMethod(graph_->GetMethodIdx(), with_signature);
 #else
   const string method_signature = PrettyMethod(graph_->GetMethodIdx(), graph_->GetDexFile());;
