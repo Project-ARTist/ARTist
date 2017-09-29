@@ -125,7 +125,7 @@ void ModuleManager::initializeModules(vector<const DexFile*> dex_files, jobject 
     VLOG(artistd) << "Check whether " << dexfile->GetLocation() << " defines " << searched_signature;
     for (uint16_t idx = 0; idx < dexfile->NumClassDefs(); idx++) {
       auto class_def = &dexfile->GetClassDef(idx);
-      dex::TypeIndex class_idx = class_def->class_idx_;
+      auto class_idx = class_def->class_idx_;
       auto candidate_signature = dexfile->StringByTypeIdx(class_idx);
       VLOG(artistd) << "ModuleManager: comparing candidate " << candidate_signature << " to searched " << searched_signature;
       if (searched_signature.find(candidate_signature) != string::npos) {

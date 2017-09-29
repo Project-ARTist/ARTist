@@ -687,6 +687,8 @@ mirror::Class* ArtUtils::GetClassFrom(CompilerDriver* driver,
   Handle<mirror::DexCache> dex_cache(hs.NewHandle(
       compilation_unit.GetClassLinker()->FindDexCache(Thread::Current(), dex_file)));
 #else
+  Handle<mirror::ClassLoader> class_loader(hs.NewHandle(
+      soa.Decode<mirror::ClassLoader*>(compilation_unit.GetClassLoader())));
   Handle<mirror::DexCache> dex_cache(hs.NewHandle(
       compilation_unit.GetClassLinker()->FindDexCache(Thread::Current(), dex_file, false)));
 

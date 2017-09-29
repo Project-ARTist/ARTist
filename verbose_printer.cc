@@ -131,9 +131,10 @@ namespace art {
 
   void VerbosePrinter::PrintPostInstruction(HInstruction* instruction) {
     if (instruction->InputCount() != 0) {
-      HInputsRef inputs = instruction->GetInputs();
-      PrintString("(");
       bool first = true;
+      PrintString("(");
+#ifdef BUILD_OREO
+      HInputsRef inputs = instruction->GetInputs();
       for (auto && input : inputs) {
         if (first) {
           first = false;
@@ -142,6 +143,16 @@ namespace art {
         }
         PrintInt(input->GetId());
       }
+#else
+      for (HInputIterator it(instruction); !it.Done(); it.Advance()) {
+        if (first) {
+          first = false;
+        } else {
+          PrintString(", ");
+        }
+        PrintInt(it.Current()->GetId());
+      }
+#endif
       PrintString(")");
     }
     if (instruction->HasUses()) {

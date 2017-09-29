@@ -95,7 +95,11 @@ void HArtist::Run() {
   }
   // TODO: with or without signature?
   bool with_signature = true;
+#ifdef BUILD_OREO
   const string method_signature = graph_->GetDexFile().PrettyMethod(graph_->GetMethodIdx(), with_signature);
+#else
+  const string method_signature = PrettyMethod(invoke->GetDexMethodIndex(), invoke->GetBlock()->GetGraph()->GetDexFile(), with_signature);
+#endif
   ArtistLog::LogMethodCount(++method_counter);
   VLOG(artistd) << std::endl;
   VLOG(artist) << "Artist #" << method_counter << ": " << method_signature<< " (" << dexFileName << ")";
