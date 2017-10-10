@@ -28,6 +28,8 @@ namespace art {
 
   const bool ArtistLog::VERBOSE_LOGGING = false;
 
+  const std::string ArtistLog::VERSION = "00001";  // Debug and verification help
+
   void ArtistLog::LogMethod(const ArtistMethodInfo& info) {
     VLOG(artistd) << "Method " << info.GetMethodName(true);
     VerbosePrinter printer(info);
@@ -88,6 +90,7 @@ namespace art {
 //        gLogVerbosity.threads = true;
 //        gLogVerbosity.verifier = true;
     }
+    VLOG(artist) << "% ARTist Version " << ArtistLog::VERSION;
   }
 
   void ArtistLog::ForceVerboseLogging() {

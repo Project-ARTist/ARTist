@@ -225,30 +225,16 @@ HInstruction* ArtUtils::InjectCodeLib(const HInstruction* instruction_cursor,
   ScopedObjectAccess soa(Thread::Current());
   StackHandleScope<1> hs(soa.Self());
 
-  Handle<mirror::DexCache> codelib_dex_cache(
-      hs.NewHandle(class_linker->FindDexCache(Thread::Current(), codelib_dexfile)));
-  Handle<mirror::Class> codelib_class(
-      hs.NewHandle(
-          class_linker->ResolveType(
-              dex_file,
-              dex::TypeIndex(symbols->getTypeIdx()),
-              codelib_dex_cache,
-              dex_compilation_unit.GetClassLoader())));
-//  mirror::Class* codelib_class = class_linker->ResolveType(
-//      dex_file,
-//      dex::TypeIndex(env->getTypeIdx()),
-//      codelib_dex_cache,
-//      dex_compilation_unit.GetClassLoader()
-//  );
-        // the given DexFile.
-//  mirror::Class* ResolveType(const DexFile& dex_file,
-//                             dex::TypeIndex type_idx,
-//                             Handle<mirror::DexCache> dex_cache,
-//                             Handle<mirror::ClassLoader> class_loader)
-//  dex_file, uint32_t field_idx,
-//      Handle<mirror::DexCache> dex_cache,
-//      Handle<mirror::ClassLoader> class_loader, bool is_static)
-//  Handle<mirror::Class> klass = handles_->NewHandle(resolved_method->GetDeclaringClass());
+  Handle<mirror::ClassLoader> class_loader = dex_compilation_unit.GetClassLoader();
+
+  ArtField* resolved_field = class_linker->ResolveField(dex_file,
+                                                        env->getInstanceFieldIdx(),
+                                                        dex_compilation_unit.GetDexCache(),
+                                                        class_loader,
+                                                        false);
+
+  // @CHECK: class_linker_->FindClass(soa.Self(), "Lpackage2/Package2;", class_loader));
+  Handle<mirror::Class> codelib_class(hs.NewHandle(resolved_field->GetDeclaringClass()));
   uint32_t dex_pc = 0;
   HLoadClass* loadClassCodeLib = new(allocator) HLoadClass(
       graph->GetCurrentMethod(),
@@ -258,13 +244,6 @@ HInstruction* ArtUtils::InjectCodeLib(const HInstruction* instruction_cursor,
       false,  /*bool is_referrers_class*/
       dex_pc, /*uint32_t dex_pc*/
       true);  // bool needs_access_check*/  // seems to have no influence, but we also add a manual CLinitcheck in both cases.
-//  HLoadClass(HCurrentMethod* current_method,
-//             dex::TypeIndex type_index,
-//  const DexFile& dex_file,
-//  Handle<mirror::Class> klass,
-//  bool is_referrers_class,
-//  uint32_t dex_pc,
-//  bool needs_access_check)
 #else
   HLoadClass* loadClassCodeLib = new(allocator) HLoadClass(
       graph->GetCurrentMethod(),
@@ -291,40 +270,6 @@ HInstruction* ArtUtils::InjectCodeLib(const HInstruction* instruction_cursor,
                                                                        field_offset,
                                                                        IS_VOLATILE);
 #elif defined BUILD_OREO
-  // Getting the dexCache;
-  // ScopedObjectAccess includes locking the mutator lock
-//  const DexFile& codelib_dexfile(*env->getDexFile());
-//  ScopedObjectAccess soa(Thread::Current());
-//  StackHandleScope<1> hs(soa.Self());
-//  ClassLinker* class_linker = Runtime::Current()->GetClassLinker();
-
-
-//  Handle<mirror::DexCache> codelib_dex_cache(
-//      hs.NewHandle(
-//          class_linker->FindDexCache(Thread::Current(), codelib_dexfile)
-//      )
-//  );
-//  Handle<mirror::Class> classss = class_linker->FindClass(Thread::Current(), )
-
-//  ArtField* HInstructionBuilder::ResolveField(uint16_t field_idx, bool is_static, bool is_put) {
-//  ScopedObjectAccess soa(Thread::Current());
-//  StackHandleScope<2> hs(soa.Self());
-
-//    ClassLinker* class_linker = dex_compilation_unit_->GetClassLinker();
-    Handle<mirror::ClassLoader> class_loader = dex_compilation_unit.GetClassLoader();
-//    Handle<mirror::Class> compiling_class(hs.NewHandle(GetCompilingClass()));
-
-    ArtField* resolved_field = class_linker->ResolveField(dex_file,
-                                                          env->getInstanceFieldIdx(),
-                                                          dex_compilation_unit.GetDexCache(),
-                                                          class_loader,
-                                                          true);
-
-//  FieldIdx field_idx = env->getInstanceFieldIdx();
-//  env->getIns
-//      codelib_dexfile->Get
-//  codelib_dex_cache->GetClass()->GetStaticField()
-//      HInstructionBuilder::ResolveField()
   HStaticFieldGet* getFieldInstance = new(allocator) HStaticFieldGet(clInitCheckCodelib,
                                                                      resolved_field,
                                                                      Primitive::Type::kPrimNot,
@@ -407,7 +352,7 @@ HInstruction* ArtUtils::InjectMethodCall(HInstruction* instruction_cursor,
   Locks::mutator_lock_->SharedLock(Thread::Current());
   ClassLinker* class_linker = Runtime::Current()->GetClassLinker();
   ArtMethod* resolved_method =
-      class_linker->ResolveMethod<ClassLinker::ResolveMode::kNoICCECheckForCache>(
+      class_linker->ResolveMethod<ClassLinker::ResolveMode::kForceICCECheck>(
           Thread::Current(),
           symbols->getMethodIdx(method_signature),
           graph->GetArtMethod(),
@@ -422,7 +367,6 @@ HInstruction* ArtUtils::InjectMethodCall(HInstruction* instruction_cursor,
                                                                      resolved_method,
                                                                      (uint32_t) env->getMethodVtableIdx(method_signature));
 #else
-
   HInvokeVirtual* invokeInstruction = new (allocator) HInvokeVirtual(allocator,
                                                                      (uint32_t) function_params.size(),
                                                                      return_type,
@@ -477,14 +421,23 @@ bool ArtUtils::IsNativeMethod(HInvoke* instruction) {
   HGraph* graph = instruction->GetBlock()->GetGraph();
 
 #ifdef BUILD_MARSHMALLOW
-  ArtMethod *resolved_method = class_linker->FindDexCache(graph->GetDexFile())->GetResolvedMethod(
-      instruction->GetDexMethodIndex(), class_linker->GetImagePointerSize());
+  ArtMethod *resolved_method = class_linker->FindDexCache(
+    graph->GetDexFile())->GetResolvedMethod(
+      instruction->GetDexMethodIndex(),
+      class_linker->GetImagePointerSize());
 #elif defined BUILD_OREO
-  ArtMethod *resolved_method = class_linker->FindDexCache(Thread::Current(), graph->GetDexFile())->GetResolvedMethod(
-      instruction->GetDexMethodIndex(), class_linker->GetImagePointerSize());
+  ArtMethod *resolved_method = class_linker->FindDexCache(
+    Thread::Current(),
+    graph->GetDexFile())->GetResolvedMethod(
+      instruction->GetDexMethodIndex(),
+      class_linker->GetImagePointerSize());
 #else
-  ArtMethod *resolved_method = class_linker->FindDexCache(Thread::Current(), graph->GetDexFile(), false)->GetResolvedMethod(
-      instruction->GetDexMethodIndex(), class_linker->GetImagePointerSize());
+  ArtMethod *resolved_method = class_linker->FindDexCache(
+    Thread::Current(),
+    graph->GetDexFile(),
+    false)->GetResolvedMethod(
+      instruction->GetDexMethodIndex(),
+      class_linker->GetImagePointerSize());
 #endif
   bool result = resolved_method->IsNative();
   Locks::mutator_lock_->SharedUnlock(Thread::Current());
@@ -605,7 +558,9 @@ void ArtUtils::SetupFunctionParams(HGraph* graph,
                                    vector<HInstruction*>& function_parameters) {
   VLOG(artistd) << "ArtUtils::SetupFunctionParams()";
   if (injection->GetParameters().size() > 0) {
+    VLOG(artistd) << "ArtUtils::SetupFunctionParams() count: " << injection->GetParameters().size();
     for (auto && parameter : injection->GetParameters()) {
+      VLOG(artistd) << "ArtUtils::SetupFunctionParams() parameter: " << parameter->GetType();
       switch (parameter->GetType()) {
         case ParameterType::tBoolean: {
           auto paramBoolean = static_pointer_cast<const Boolean>(parameter);
@@ -665,14 +620,21 @@ mirror::Class* ArtUtils::GetClassFrom(CompilerDriver* driver,
       compilation_unit.GetClassLinker()->FindDexCache(dex_file)));
 #elif defined BUILD_OREO
   Handle<mirror::ClassLoader> class_loader = compilation_unit.GetClassLoader();
-  Handle<mirror::DexCache> dex_cache(hs.NewHandle(
-      compilation_unit.GetClassLinker()->FindDexCache(Thread::Current(), dex_file)));
+  Handle<mirror::DexCache> dex_cache(
+    hs.NewHandle(
+        compilation_unit.GetClassLinker()->FindDexCache(
+            Thread::Current(),
+            dex_file)));
 #else
-  Handle<mirror::ClassLoader> class_loader(hs.NewHandle(
+  Handle<mirror::ClassLoader> class_loader(
+    hs.NewHandle(
       soa.Decode<mirror::ClassLoader*>(compilation_unit.GetClassLoader())));
-  Handle<mirror::DexCache> dex_cache(hs.NewHandle(
-      compilation_unit.GetClassLinker()->FindDexCache(Thread::Current(), dex_file, false)));
-
+  Handle<mirror::DexCache> dex_cache(
+    hs.NewHandle(
+      compilation_unit.GetClassLinker()->FindDexCache(
+        Thread::Current(),
+        dex_file,
+        false)));
 #endif
   return driver->ResolveCompilingMethodsClass(soa, dex_cache, class_loader, &compilation_unit);
 }

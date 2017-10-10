@@ -37,6 +37,8 @@ namespace art {
     static const std::string PREFIX;
     static const bool VERBOSE_LOGGING;
 
+    static const std::string VERSION;
+
     static void SetupArtistLogging();
 
     static void ForceVerboseLogging();
