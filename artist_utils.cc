@@ -364,7 +364,7 @@ HInstruction* ArtUtils::InjectMethodCall(HInstruction* instruction_cursor,
   Locks::mutator_lock_->SharedLock(Thread::Current());
   ClassLinker* class_linker = Runtime::Current()->GetClassLinker();
   ArtMethod* resolved_method =
-      class_linker->ResolveMethod<ClassLinker::ResolveMode::kForceICCECheck>(
+      class_linker->ResolveMethod<ClassLinker::ResolveMode::kNoICCECheckForCache>(
           Thread::Current(),
           symbols->getMethodIdx(method_signature),
           graph->GetArtMethod(),
