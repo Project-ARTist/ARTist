@@ -40,6 +40,7 @@ typedef size_t MethodVtableIdx;
 
 // method signature
 typedef string MethodSignature;
+typedef string ClassSignature;
 }  // namespace art
 
 #endif  // ART_ARTIST_TYPEDEFS_H_

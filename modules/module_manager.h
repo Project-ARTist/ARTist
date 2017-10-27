@@ -61,8 +61,6 @@ class ModuleManager {
  private:
     ModuleManager() : init_flag(false), _modules {}, _dex_file_env(), _environments {} {}
 
-    bool definesClass(const DexFile* dexfile, MethodSignature searched_signature) const;
-
 // regular logic
  public:
     bool registerModule(ModuleId id, shared_ptr<Module> module);

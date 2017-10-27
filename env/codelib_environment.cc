@@ -27,6 +27,7 @@
 #include "codelib_environment.h"
 
 #include "optimizing/artist/artist_log.h"
+#include "optimizing/artist/artist_utils.h"
 #include "optimizing/artist/error_handler.h"
 
 using std::make_shared;
@@ -59,13 +60,27 @@ CodeLibEnvironment::CodeLibEnvironment(shared_ptr<const DexfileEnvironment> dexf
   Locks::mutator_lock_->SharedUnlock(Thread::Current());
 
   // init class def index
-  _cld_idx = ArtUtils::FindClassDefIdxFromName(*codelib_dex_file, codelib->getCodeClass());
+  auto codelib_class = codelib->getCodeClass();
+  if (!ArtUtils::FindClassDefIdxFromName(codelib_dex_file, codelib_class, &_cld_idx)) {
+    auto msg("Could not find ClassDefId for class: " + codelib_class);
+    ErrorHandler::abortCompilation(msg);
+  }
 
   // init type index
-  _type_idx = ArtUtils::FindTypeIdxFromName(*codelib_dex_file, _codelib->getCodeClass());
+//  _type_idx = ArtUtils::FindTypeIdxFromName(*codelib_dex_file, _codelib->getCodeClass());
+
+  if (!ArtUtils::FindTypeIdxFromName(codelib_dex_file, codelib_class, &_type_idx)) {
+    auto msg("Could not find type " + codelib_class);
+    ErrorHandler::abortCompilation(msg);
+  }
 
   // init singleton instance field index
-  _instance_idx = ArtUtils::FindFieldIdxFromName(*codelib_dex_file, _codelib->getInstanceField());
+//  _instance_idx = ArtUtils::FindFieldIdxFromName(*codelib_dex_file, _codelib->getInstanceField());
+  auto instance_field = _codelib->getInstanceField();
+  if (!ArtUtils::FindFieldIdxFromName(codelib_dex_file, instance_field, &_instance_idx)) {
+    auto msg("Could not find type " + instance_field);
+    ErrorHandler::abortCompilation(msg);
+  }
 }
 
 const DexFile* CodeLibEnvironment::getDexFile() const {
@@ -175,7 +190,11 @@ MethodVtableIdx CodeLibEnvironment::findMethodVtableIdx(const MethodSignature& s
   Handle<mirror::DexCache> dex_cache(hs.NewHandle(class_linker->FindDexCache(Thread::Current(), *_codelib_dex, false)));
 #endif
 
-  const MethodIdx method_idx = ArtUtils::FindMethodIdx(*_codelib_dex, signature);
+  MethodIdx method_idx;
+  if (!ArtUtils::FindMethodIdx(_codelib_dex, signature, &method_idx)) {
+    auto msg("Could not find method idx for " + signature);
+    ErrorHandler::abortCompilation(msg);
+  }
 
   ArtMethod* resolved_method = dex_cache->GetResolvedMethod(method_idx, class_linker->GetImagePointerSize());
 

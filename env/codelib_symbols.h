@@ -59,7 +59,7 @@ class CodelibSymbols {
     const DexFile* _dex_file;
 
     // the codelib type index in the given dexfile
-    TypeIdx _typeIdx;
+    TypeIdx _type_idx;
 
     // codelib method indices in the given dexfile
     map<MethodSignature, MethodIdx> _method_idx;

@@ -44,22 +44,17 @@ using std::static_pointer_cast;
 
 namespace art {
 
-const DexFile::MethodId* ArtUtils::FindMethodId(const HGraph* graph,
+const DexFile::MethodId* ArtUtils::FindMethodId(const DexFile* dex_file,
                                                 const string& searched_method_name) {
-  return ArtUtils::FindMethodId(graph->GetDexFile(), searched_method_name);
-}
-
-const DexFile::MethodId* ArtUtils::FindMethodId(const DexFile& dex_file,
-                                                const string& searched_method_name) {
-  const size_t methodCount = dex_file.NumMethodIds();
+  const size_t methodCount = dex_file->NumMethodIds();
 
   const DexFile::MethodId* foundMethodId = nullptr;
 
   for (uint32_t i = 0; i< methodCount; i++) {
-    const DexFile::MethodId& methodId = dex_file.GetMethodId(i);
-    const string methodClass = dex_file.GetMethodDeclaringClassDescriptor(methodId);
-    const string methodName = dex_file.GetMethodName(methodId);
-    const string methodSignature = dex_file.GetMethodSignature(methodId).ToString();
+    const DexFile::MethodId& methodId = dex_file->GetMethodId(i);
+    const string methodClass = dex_file->GetMethodDeclaringClassDescriptor(methodId);
+    const string methodName = dex_file->GetMethodName(methodId);
+    const string methodSignature = dex_file->GetMethodSignature(methodId).ToString();
     const string fullyQualifiedMethodName(methodClass + methodName + methodSignature);
 
     if (searched_method_name.compare(fullyQualifiedMethodName) == 0) {
@@ -73,79 +68,76 @@ const DexFile::MethodId* ArtUtils::FindMethodId(const DexFile& dex_file,
   return foundMethodId;
 }
 
-    MethodIdx ArtUtils::FindMethodIdx(const HGraph* graph, const string& searched_method_name) {
-  return FindMethodIdx(graph->GetDexFile(), searched_method_name);
-}
-MethodIdx ArtUtils::FindMethodIdx(const DexFile& dex_file, const string& searched_method_name) {
+bool ArtUtils::FindMethodIdx(const DexFile* dex_file, const string& searched_method_name, MethodIdx* result = nullptr) {
   const DexFile::MethodId* methodId = ArtUtils::FindMethodId(dex_file, searched_method_name);
   if (methodId != nullptr) {
-    return dex_file.GetIndexForMethodId(*methodId);
+    if (result) {
+      *result = dex_file->GetIndexForMethodId(*methodId);
+    }
+    return true;
   }
-  auto msg("Could not find method idx for " + searched_method_name);
-  ErrorHandler::abortCompilation(msg);
+  return false;
 }
 
-TypeIdx ArtUtils::FindTypeIdxFromName(const HGraph* graph, const string & searched_type_name) {
-  return FindTypeIdxFromName(graph->GetDexFile(), searched_type_name);
-}
-
-TypeIdx ArtUtils::FindTypeIdxFromName(const DexFile& dex_file, const string & searched_type_name) {
-  for (uint32_t i = 0; i < dex_file.NumTypeIds(); i++) {
-    const DexFile::TypeId& typeId = dex_file.GetTypeId(i);
-    string type_name(dex_file.GetTypeDescriptor(typeId));
+bool ArtUtils::FindTypeIdxFromName(const DexFile* dex_file, const string & searched_type_name,
+                                   TypeIdx* result = nullptr) {
+  for (uint32_t i = 0; i < dex_file->NumTypeIds(); i++) {
+    const DexFile::TypeId& typeId = dex_file->GetTypeId(i);
+    string type_name(dex_file->GetTypeDescriptor(typeId));
     if (type_name.compare(searched_type_name) == 0) {
-        TypeIdx typeIdx = dex_file.GetIndexForTypeId(typeId);
-        VLOG(artistd) << "Returning TypeIdx: " << typeIdx << " Type: " << searched_type_name;
-        return typeIdx;
+      TypeIdx typeIdx = dex_file->GetIndexForTypeId(typeId);
+      VLOG(artistd) << "Returning TypeIdx: " << typeIdx << " Type: " << searched_type_name;
+      if (result) {
+        *result = typeIdx;
+      }
+      return true;
     }
   }
-  auto msg("Could not find type" + searched_type_name);
-  ErrorHandler::abortCompilation(msg);
+  return false;
 }
 
-FieldIdx ArtUtils::FindFieldIdxFromName(const HGraph* graph, const string & searched_field_name) {
-  return FindFieldIdxFromName(graph->GetDexFile(), searched_field_name);
-}
+bool ArtUtils::FindFieldIdxFromName(const DexFile* dex_file, const string & searched_field_type,
+                                    FieldIdx* result = nullptr) {
+  for (uint32_t i = 0; i < dex_file->NumFieldIds(); i++) {
+    const DexFile::FieldId &fieldId = dex_file->GetFieldId(i);
 
-FieldIdx ArtUtils::FindFieldIdxFromName(const DexFile& dex_file, const string & searched_field_type) {
-  for (uint32_t i = 0; i < dex_file.NumFieldIds(); i++) {
-    const DexFile::FieldId &fieldId = dex_file.GetFieldId(i);
-
-    const string fieldName(dex_file.GetFieldName(fieldId));
-    const string fieldType(dex_file.GetFieldTypeDescriptor(fieldId));
+    const string fieldName(dex_file->GetFieldName(fieldId));
+    const string fieldType(dex_file->GetFieldTypeDescriptor(fieldId));
     const string fullyQualifiedFieldName(fieldType + fieldName);
 
     if (fullyQualifiedFieldName.compare(searched_field_type) == 0) {
-        FieldIdx fieldIdx = dex_file.GetIndexForFieldId(fieldId);
-        VLOG(artistd) << "Found FieldIdx: " << fieldIdx << " for field type " << searched_field_type;
-        return fieldIdx;
+      FieldIdx fieldIdx = dex_file->GetIndexForFieldId(fieldId);
+      VLOG(artistd) << "Found FieldIdx: " << fieldIdx << " for field type " << searched_field_type;
+      if (result) {
+        *result = fieldIdx;
+      }
+      return true;
     }
   }
-  auto msg("Could not find type " + searched_field_type);
-  ErrorHandler::abortCompilation(msg);
+  return false;
 }
 
-ClassDefIdx ArtUtils::FindClassDefIdxFromName(const HGraph* graph, const  string & searched_class_name) {
-  return FindClassDefIdxFromName(graph->GetDexFile(), searched_class_name);
-}
-
-ClassDefIdx ArtUtils::FindClassDefIdxFromName(const DexFile& dex_file, const  string & searched_class_name) {
-  for (uint16_t idx = 0; idx < dex_file.NumClassDefs(); idx++) {
-    const DexFile::ClassDef& def = dex_file.GetClassDef(idx);
-    // get type
-    string class_name = dex_file.GetTypeDescriptor(dex_file.GetTypeId(def.class_idx_));
-    if (class_name.find(searched_class_name) != string::npos) {
-      VLOG(artistd) << "Found ClassDefId: " << idx << " for class: " << searched_class_name;
-      return idx;
+bool ArtUtils::FindClassDefIdxFromName(const DexFile* dex_file, const  string & searched_signature,
+                                       ClassDefIdx* result) {
+  VLOG(artistd) << "Check whether " << dex_file->GetLocation() << " defines " << searched_signature;
+  for (uint16_t idx = 0; idx < dex_file->NumClassDefs(); idx++) {
+    auto class_def = &dex_file->GetClassDef(idx);
+    ClassDefIdx class_idx = class_def->class_idx_;
+    auto candidate_signature = dex_file->StringByTypeIdx(class_idx);
+    VLOG(artistd) << "Comparing candidate " << candidate_signature << " to searched " << searched_signature;
+    // search for perfect match
+    if (searched_signature.find(candidate_signature) == 0) {
+      VLOG(artistd) << "Signature found.";
+      if (result) {
+        *result = idx;
+      }
+      return true;
     }
   }
-  auto msg("Could not find ClassDefId for class: " + searched_class_name);
-  ErrorHandler::abortCompilation(msg);
+  VLOG(artistd) << "Could not find signature " << searched_signature;
+  return false;
 }
 
-void ArtUtils::DumpTypes(const HGraph* graph) {
-  ArtUtils::DumpTypes(graph->GetDexFile());
-}
 
 void ArtUtils::DumpTypes(const DexFile& dex_file) {
   VLOG(artistd) << "DumpTypes()";
@@ -156,10 +148,6 @@ void ArtUtils::DumpTypes(const DexFile& dex_file) {
 
     VLOG(artistd) << type_name;
   }
-}
-
-void ArtUtils::DumpFields(const HGraph* graph) {
-  DumpFields(graph->GetDexFile());
 }
 
 void ArtUtils::DumpFields(const DexFile& dex_file) {

@@ -27,7 +27,11 @@ namespace art {
 CodelibSymbols::CodelibSymbols(const DexFile* dex_file, shared_ptr<const CodeLib> codelib, jobject jclass_loader)
         : _dex_file(dex_file) {
   // init type index
-  _typeIdx = ArtUtils::FindTypeIdxFromName(*dex_file, codelib->getCodeClass());
+  auto codelib_class = codelib->getCodeClass();
+  if (!ArtUtils::FindTypeIdxFromName(dex_file, codelib_class, &_type_idx)) {
+    auto msg("Could not find type " + codelib_class);
+    ErrorHandler::abortCompilation(msg);
+  }
 
   ClassLinker* class_linker = Runtime::Current()->GetClassLinker();
 #ifdef BUILD_MARSHMALLOW
@@ -46,8 +50,10 @@ CodelibSymbols::CodelibSymbols(const DexFile* dex_file, shared_ptr<const CodeLib
 
   // init method (vtable) indices
   for (MethodSignature signature : codelib->getMethods()) {
-      const MethodIdx method_idx = ArtUtils::FindMethodIdx(*dex_file, signature);
-      _method_idx[signature] = method_idx;
+    if (!ArtUtils::FindMethodIdx(dex_file, signature, &(_method_idx[signature]))) {
+      auto msg("Could not find method idx for " + signature);
+      ErrorHandler::abortCompilation(msg);
+    }
   }
 }
 
@@ -57,7 +63,7 @@ const DexFile* CodelibSymbols::getDexFile() const {
 }
 
 TypeIdx CodelibSymbols::getTypeIdx() const {
-  return _typeIdx;
+  return _type_idx;
 }
 
 MethodIdx CodelibSymbols::getMethodIdx(MethodSignature signature) const {

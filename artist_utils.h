@@ -49,22 +49,27 @@ namespace art {
     static string GetDexName(const string& dex_name, uint32_t dex_file_idx);
 
    public:
-    static const DexFile::MethodId* FindMethodId(const HGraph* graph, const string& searched_method_name);
-    static const DexFile::MethodId* FindMethodId(const DexFile& dex_file, const string& searched_method_name);
+    static const DexFile::MethodId* FindMethodId(const DexFile* dex_file, const string& searched_method_name);
 
-    static MethodIdx FindMethodIdx(const HGraph* graph, const string& searched_method_name);
-    static MethodIdx FindMethodIdx(const DexFile& dex_file, const string& searched_method_name);
+    static bool FindMethodIdx(const DexFile* dex_file, const string& searched_method_name, MethodIdx* result);
 
-    static TypeIdx FindTypeIdxFromName(const HGraph* graph, const string & searched_type_name);
-    static TypeIdx FindTypeIdxFromName(const DexFile& dex_file, const string & searched_type_name);
+    static bool FindTypeIdxFromName(const DexFile* dex_file, const string & searched_type_name, TypeIdx* result);
 
-    static FieldIdx FindFieldIdxFromName(const HGraph* graph, const string & searched_field_name);
-    static FieldIdx FindFieldIdxFromName(const DexFile& dex_file, const string & searched_field_type);
+    static bool FindFieldIdxFromName(const DexFile* dex_file, const string & searched_field_type, FieldIdx* result);
 
-    static ClassDefIdx FindClassDefIdxFromName(const HGraph* graph, const  string & searched_class_name);
-    static ClassDefIdx FindClassDefIdxFromName(const DexFile& dex_file, const  string & searched_class_name);
+    /**
+     * Check whether the given dexfile defines the given class. Note that for well-formed app dex files, there will only
+     * ever be one single dex file to define a particular class.
+     * The out parameter result is only changed if the dex file actually defines the searched class.
+     *
+     * @param dexfile the dex file to be searched
+     * @param searched_signature the signature of the searched class
+     * @param result the out pointer for the resulting class def index
+     * @return whether the dex file defines the class
+    */
+    static bool FindClassDefIdxFromName(const DexFile* dex_file, const  string & searched_signature,
+                                                  ClassDefIdx* result = nullptr);
 
-    static void DumpTypes(const HGraph* graph);
     static void DumpTypes(const DexFile& dex_file);
 
     static string GetMethodName(HInvoke* invoke, bool signature = false);
@@ -72,7 +77,6 @@ namespace art {
 
         static string GetDexFileName(const HGraph* graph);
 
-    static void DumpFields(const HGraph* graph);
     static void DumpFields(const DexFile& dex_file);
 
     static HInstruction* InjectCodeLib(const HInstruction* instruction_cursor,
