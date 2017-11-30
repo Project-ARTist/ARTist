@@ -27,8 +27,11 @@
 namespace art {
 
 class TraceModule : public Module {
-    shared_ptr<HArtist> createPass(HGraph* graph, const DexCompilationUnit& dex_compilation_unit) const OVERRIDE;
+    shared_ptr<HArtist> createPass(const MethodInfo& method_info) const OVERRIDE;
     shared_ptr<const CodeLib> createCodeLib() const OVERRIDE;
+
+ public:
+  unique_ptr<Filter> getMethodFilter() const OVERRIDE;
 };
 
 }  // namespace art

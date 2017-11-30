@@ -33,15 +33,13 @@ using std::shared_ptr;
 
 namespace art {
 
-HLogtimization::HLogtimization(HGraph* graph,
-                               const DexCompilationUnit& _dex_compilation_unit,
+HLogtimization::HLogtimization(const MethodInfo& method_info,
 #ifdef BUILD_MARSHMALLOW
                                bool is_in_ssa_form,
 #endif
                                const char* pass_name,
                                OptimizingCompilerStats* stats)
-      : HArtist(graph
-      , _dex_compilation_unit
+      : HArtist(method_info
 #ifdef BUILD_MARSHMALLOW
       , is_in_ssa_form
 #endif

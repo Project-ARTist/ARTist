@@ -29,16 +29,14 @@ namespace art {
 
 class HTraceArtist : public HUniversalArtist {
  public:
-  HTraceArtist(
-      HGraph* graph,
-      const DexCompilationUnit& _dex_compilation_unit,
+  explicit HTraceArtist(
+      const MethodInfo& method_info,
 #ifdef BUILD_MARSHMALLOW
       bool is_in_ssa_form = true,
 #endif
       const char* pass_name = "TraceArtist"
       , OptimizingCompilerStats* stats = nullptr)
-      : HUniversalArtist(graph
-      , _dex_compilation_unit
+      : HUniversalArtist(method_info
 #ifdef BUILD_MARSHMALLOW
       , is_in_ssa_form
 #endif

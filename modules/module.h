@@ -19,11 +19,14 @@
  *
  */
 
+#include "optimizing/artist/filtering/filter.h"
 #include "optimizing/artist/env/codelib.h"
 #include "optimizing/artist/artist.h"
 
 #ifndef ART_MODULES_MODULE_H_
 #define ART_MODULES_MODULE_H_
+
+using std::unique_ptr;
 
 namespace art {
 
@@ -37,11 +40,10 @@ class Module {
   /**
    * Create an "optimization pass" that is executed as a part of Optimizing's optimization framework.
    *
-   * @param graph the current method graph
-   * @param dex_compilation_unit
+   * @param method_info the method graph and auxiliary information
    * @return ARTist pass
    */
-  virtual shared_ptr<HArtist> createPass(HGraph* graph, const DexCompilationUnit& dex_compilation_unit) const = 0;
+  virtual shared_ptr<HArtist> createPass(const MethodInfo& method_info) const = 0;
 
   /**
    * Create an instance of the accompanying codelib, if any.
@@ -58,11 +60,18 @@ class Module {
   void setEnabled(bool enabled);
 
   /**
-   * Return whether the module is currently enabled
+   * Return whether the module is currently enabled.
    *
    * @return enabled state
    */
   bool isEnabled() const;
+
+  /**
+   * Return the method filter for this module that decides whether an artist pass is created for a particular method.
+   *
+   * @return modules' filter or nullptr
+   */
+  virtual unique_ptr<Filter> getMethodFilter() const;
 
  private:
   bool _enabled = true;

@@ -38,16 +38,13 @@ namespace art {
  */
 class HUniversalArtist : public HArtist, public enable_shared_from_this<HUniversalArtist> {
  public:
-  HUniversalArtist(
-    HGraph* graph,
-    const DexCompilationUnit& _dex_compilation_unit,
+  explicit HUniversalArtist(const MethodInfo& method_info,
 #ifdef BUILD_MARSHMALLOW
     bool is_in_ssa_form = true,
 #endif
     const char* pass_name = "UniversalArtist"
     , OptimizingCompilerStats* stats = nullptr)
-    : HArtist(graph
-      , _dex_compilation_unit
+    : HArtist(method_info
 #ifdef BUILD_MARSHMALLOW
         , is_in_ssa_form
 #endif

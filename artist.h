@@ -48,8 +48,7 @@ class OptimizingCompilerStats;
  */
 class HArtist : public HOptimization {
  public:
-  HArtist(HGraph *graph,
-          const DexCompilationUnit& _dex_compilation_unit,
+  explicit HArtist(const MethodInfo& method_info,
 #ifdef BUILD_MARSHMALLOW
           bool is_in_ssa_form = true,
 #endif
@@ -69,14 +68,14 @@ class HArtist : public HOptimization {
   void Run() OVERRIDE;
 
  private:
-  HInstruction* codelib_instruction;
+  HInstruction* _codelib_instruction;
   shared_ptr<const DexfileEnvironment> _dexfile_env;
   shared_ptr<CodeLibEnvironment> _codelib_env;
 
  protected:
-  const MethodInfo method_info;
+  const MethodInfo& _method_info;
 
-  static uint32_t method_counter;
+  static uint32_t _method_counter;
 
  protected:
   void LogVersionOnce(const string& VERSION) const;

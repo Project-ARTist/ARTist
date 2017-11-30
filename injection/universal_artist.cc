@@ -109,7 +109,7 @@ void HUniversalArtist::RunModule()  {
   HInjectionVisitor injectionVisitor(shared_from_this(), graph_);
   injectionVisitor.VisitInsertionOrder();
 
-  ArtistLog::LogMethod(this->method_info);
+  ArtistLog::LogMethod(this->_method_info);
 
   VLOG(artistd) << "Run Module DONE";
 }

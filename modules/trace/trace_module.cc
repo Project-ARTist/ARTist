@@ -22,17 +22,26 @@
 #include "trace_module.h"
 #include "trace_artist.h"
 #include "trace_codelib.h"
+#include "optimizing/artist/filtering/method_name_filters.h"
 
 using std::make_shared;
+using std::unique_ptr;
 
 namespace art {
 
-    shared_ptr<HArtist> TraceModule::createPass(HGraph *graph, const DexCompilationUnit &dex_compilation_unit) const {
-//        return new /*(graph->GetArena())*/ HTraceArtist(graph, dex_compilation_unit);
-        return make_shared<HTraceArtist>(graph, dex_compilation_unit);
+    shared_ptr<HArtist> TraceModule::createPass(const MethodInfo& method_info) const {
+//        return new /*(graph->GetArena())*/ HTraceArtist(method_info);
+        return make_shared<HTraceArtist>(method_info);
     }
 
     shared_ptr<const CodeLib> TraceModule::createCodeLib() const {
         return make_shared<TraceCodeLib>();
     }
+
+    // skip android support lib ui methods since they bloat up the log
+    unique_ptr<Filter> TraceModule::getMethodFilter() const {
+      const vector<const string> ui = {"android.support."};
+      return unique_ptr<Filter>(new BlacklistFilter(ui));
+    }
+
 }  // namespace art

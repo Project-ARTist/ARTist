@@ -16,28 +16,23 @@
  * limitations under the License.
  *
  * @author "Oliver Schranz <oliver.schranz@cispa.saarland>"
- * @author "Sebastian Weisgerber <weisgerber@cispa.saarland>"
  *
  */
 
-#ifndef ART_BLACKLIST_H_
-#define ART_BLACKLIST_H_
+#include "optimizing/artist/method_info.h"
 
-#include <string>
-#include <vector>
-
-using std::vector;
-using std::string;
+#ifndef ART_FILTERING_FILTER_H_
+#define ART_FILTERING_FILTER_H_
 
 namespace art {
 
-class BlackList {
-  public:
-    static const vector<string> PACKAGE_BLACKLIST;
+class Filter {
+ public:
+  virtual bool accept(MethodInfo &info) = 0;
 
-  public:
-    static bool IsBlacklisted(const string& method_name);
-  };
+  virtual ~Filter() {}
+};
+
 }  // namespace art
 
-#endif  // ART_BLACKLIST_H_
+#endif  // ART_FILTERING_FILTER_H_

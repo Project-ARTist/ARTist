@@ -19,22 +19,23 @@
  *
  */
 
-#ifndef ART_MODULES_LOGTIMIZATION_LOGTIMIZATION_MODULE_H_
-#define ART_MODULES_LOGTIMIZATION_LOGTIMIZATION_MODULE_H_
-
-#include "optimizing/artist/modules/module.h"
+#include "method_name_filters.h"
 
 namespace art {
 
-class LogtimizationModule : public Module {
-  shared_ptr<HArtist> createPass(const MethodInfo& method_info) const OVERRIDE;
-  shared_ptr<const CodeLib> createCodeLib() const OVERRIDE;
-
-
- public:
-  unique_ptr<Filter> getMethodFilter() const OVERRIDE;
-};
+// depending on _accept this implementation either works like a whitelist (true) or blacklist (false) and ca be
+// fine-tuned to use exact matches and full signatures.
+bool MethodNameFilter::accept(art::MethodInfo &info) {
+  auto candidate = info.GetMethodName(_signature);
+  for (auto name : _names) {
+    auto pos = candidate.find(name);
+    // condition: match && (require exact => starts from 0 and has same length)
+    if (pos != string::npos &&
+        (!_exact || (pos == 0 && candidate.length() == name.length()))) {
+      return _accept;
+    }
+  }
+  return !_accept;
+}
 
 }  // namespace art
-
-#endif  // ART_MODULES_LOGTIMIZATION_LOGTIMIZATION_MODULE_H_

@@ -21,18 +21,27 @@
 
 #include "logtimization_module.h"
 #include "logtimization_artist.h"
+#include "optimizing/artist/filtering/method_name_filters.h"
 
 using std::make_shared;
 
 namespace art {
 
-shared_ptr<HArtist> LogtimizationModule::createPass(HGraph *graph, const DexCompilationUnit &dex_compilation_unit) const {
-//  return new /*(graph->GetArena())*/ HLogtimization(graph, dex_compilation_unit);
-  return make_shared<HLogtimization>(graph, dex_compilation_unit);
+shared_ptr<HArtist> LogtimizationModule::createPass(const MethodInfo& method_info) const {
+//  return new /*(graph->GetArena())*/ HLogtimization(method_info);
+  return make_shared<HLogtimization>(method_info);
 }
 
 shared_ptr<const CodeLib> LogtimizationModule::createCodeLib() const {
   return nullptr;
+}
+
+/* (Arbitrary) restriction of compile-time output to "onCreate" methods (Activities, Applications, ...) to reduce
+ * logcat spamming.
+ */
+unique_ptr<Filter> LogtimizationModule::getMethodFilter() const {
+  const vector<const string> onCreate = {".onCreate("};
+  return unique_ptr<Filter>(new WhitelistFilter(onCreate, false, true));
 }
 
 }  // namespace art

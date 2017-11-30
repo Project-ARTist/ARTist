@@ -24,7 +24,6 @@
 
 #include "artist.h"
 #include "artist_log.h"
-#include "blacklist.h"
 #include "injection/injection_visitor.h"
 #include "env/java_env.h"
 #include "method_info_factory.h"
@@ -47,24 +46,23 @@ using std::atomic_flag;
 
 namespace art {
 
-uint32_t HArtist::method_counter = 0;
+uint32_t HArtist::_method_counter = 0;
 
-HArtist::HArtist(HGraph* graph,
-                 const DexCompilationUnit& _dex_compilation_unit,
+HArtist::HArtist(const MethodInfo& method_info,
 #ifdef BUILD_MARSHMALLOW
                  bool is_in_ssa_form,
 #endif
                  const char* pass_name,
                  OptimizingCompilerStats* stats)
-    : HOptimization(graph,
+    : HOptimization(method_info.GetGraph(),
 #ifdef BUILD_MARSHMALLOW
                     is_in_ssa_form,
 #endif
                     pass_name, stats)
-    , codelib_instruction(nullptr)
-    , method_info(MethodInfoFactory::obtain(graph, _dex_compilation_unit)) {
+    , _codelib_instruction(nullptr)
+    , _method_info(method_info) {
   ArtistLog::SetupArtistLogging();
-  const string& VERSION = "00110";
+  const string& VERSION = "00111";
   LogVersionOnce(VERSION);
 }
 
@@ -82,21 +80,17 @@ void HArtist::Run() {
   CHECK(graph_ != nullptr);
   VLOG(artistd) << "HArtist::Run()";
 
-  const string method_name = method_info.GetMethodName();
+  const string method_name = _method_info.GetMethodName();
   const string& dexFileName = graph_->GetDexFile().GetLocation();
 
-  if (BlackList::IsBlacklisted(method_name)) {
-    VLOG(artistd) << "HArtist::Run() SKIPPING " << method_name << " (" << dexFileName << ")";;
-    return;
-  }
   if (_dexfile_env->isCodelib(&graph_->GetDexFile())) {
     VLOG(artistd) << "HArtist::Run() SKIPPING CodeLib " << method_name << " (" << dexFileName << ")";
     return;
   }
   const string method_signature = PrettyMethod(graph_->GetMethodIdx(), graph_->GetDexFile());
-  ArtistLog::LogMethodCount(++method_counter);
+  ArtistLog::LogMethodCount(++_method_counter);
   VLOG(artistd) << std::endl;
-  VLOG(artist) << "Artist #" << method_counter << ": " << method_signature<< " (" << dexFileName << ")";
+  VLOG(artist) << "Artist #" << _method_counter << ": " << method_signature<< " (" << dexFileName << ")";
 
   Setup();
   RunModule();
@@ -112,19 +106,19 @@ void HArtist::Setup() {
 
 
 HInstruction* HArtist::GetCodeLibInstruction(HInstruction *instruction_cursor) {
-  if (this->codelib_instruction == nullptr) {
+  if (this->_codelib_instruction == nullptr) {
     if (instruction_cursor == nullptr) {
-      this->codelib_instruction = ArtUtils::InjectCodeLib(graph_->GetEntryBlock()->GetLastInstruction(), _codelib_env);
+      this->_codelib_instruction = ArtUtils::InjectCodeLib(graph_->GetEntryBlock()->GetLastInstruction(), _codelib_env);
     } else {
-      this->codelib_instruction = ArtUtils::InjectCodeLib(instruction_cursor, _codelib_env, false);
+      this->_codelib_instruction = ArtUtils::InjectCodeLib(instruction_cursor, _codelib_env, false);
     }
   }
-  return this->codelib_instruction;
+  return this->_codelib_instruction;
 }
 
 const MethodInfo& HArtist::GetMethodInfo() const {
-  VLOG(artistd) << "HArtist::GetMethodInfo(): " << this->method_info << std::flush;
-  return this->method_info;
+  VLOG(artistd) << "HArtist::GetMethodInfo(): " << this->_method_info << std::flush;
+  return this->_method_info;
 }
 
 /**

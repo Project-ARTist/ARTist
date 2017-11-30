@@ -40,8 +40,7 @@ class OptimizingCompilerStats;
 
 class HLogtimization : public HArtist {
  public:
-  HLogtimization(HGraph* graph,
-                 const DexCompilationUnit& _dex_compilation_unit,
+  explicit HLogtimization(const MethodInfo& method_info,
 #ifdef BUILD_MARSHMALLOW
                  bool is_in_ssa_form = true,
 #endif
