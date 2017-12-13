@@ -28,6 +28,7 @@
 #include "dex_file-inl.h"
 #include "method_info_factory.h"
 
+using std::to_string;
 
 namespace art {
 
@@ -125,6 +126,65 @@ namespace art {
     PrintString(StringPrintf("%" PRId64, value).c_str());
   }
 
+  void VerbosePrinter::VisitMonitorOperation(HMonitorOperation *instruction) {
+    PrintPreInstruction(instruction);
+    PrintString(instruction->DebugName());
+    PrintString(": ");
+    switch (instruction->GetOperationKind()) {
+      case HMonitorOperation::OperationKind::kEnter:
+        PrintString("Enter");
+        break;
+      case HMonitorOperation::OperationKind::kExit:
+        PrintString("Exit");
+        break;
+    }
+    PrintPostInstruction(instruction);
+  }
+
+  void VerbosePrinter::VisitTryBoundary(HTryBoundary *instruction) {
+    PrintPreInstruction(instruction);
+    PrintString(instruction->DebugName());
+    PrintString(": ");
+    switch (instruction->GetBoundaryKind()) {
+      case HTryBoundary::BoundaryKind::kEntry:
+        PrintString("Entry");
+        break;
+      case HTryBoundary::BoundaryKind::kExit:
+        PrintString("Exit");
+        break;
+    }
+    auto succ = ", succ: BB" + to_string(instruction->GetNormalFlowSuccessor()->GetBlockId());
+    PrintString(succ.c_str());
+    auto handlers = instruction->GetExceptionHandlers();
+    if (handlers.size() > 0) {
+      PrintString(", handlers: ");
+      bool first = true;
+      for (auto handler : handlers) {
+        if (!first) {
+          PrintString(", ");
+        } else {
+          first = false;
+        }
+        auto block = "BB" + to_string(handler->GetBlockId());
+        PrintString(block.c_str());
+      }
+    }
+    PrintPostInstruction(instruction);
+  }
+
+  void VerbosePrinter::VisitIf(HIf *instruction) {
+    PrintPreInstruction(instruction);
+    PrintString(instruction->DebugName());
+    auto true_bb = instruction->IfTrueSuccessor()->GetBlockId();
+    auto false_bb = instruction->IfFalseSuccessor()->GetBlockId();
+    auto condition = instruction->InputAt(0)->GetId();
+    std::stringstream s;
+    s << "(" << condition << "), true: BB" << true_bb << ", false: BB" << false_bb;
+    PrintString(s.str().c_str());
+    PrintNewLine();
+  }
+
+
   void VerbosePrinter::PrintPostInstruction(HInstruction* instruction) {
     if (instruction->InputCount() != 0) {
       PrintString("(");
@@ -169,4 +229,6 @@ namespace art {
     }
     PrintNewLine();
   }
+
+
 }  // namespace art

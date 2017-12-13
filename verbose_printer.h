@@ -44,12 +44,15 @@ namespace art {
     void VisitInvokeInterface(HInvokeInterface* instruction) OVERRIDE;
     void VisitIntConstant(HIntConstant* instruction) OVERRIDE;
     void VisitLongConstant(HLongConstant* instruction) OVERRIDE;
+    void VisitMonitorOperation(HMonitorOperation* instruction) OVERRIDE;
+    void VisitTryBoundary(HTryBoundary* instruction) OVERRIDE;
+    void VisitIf(HIf* instruction) OVERRIDE;
     void PrintPostInstruction(HInstruction* instruction);
 
-  protected:  // methods
+  protected:
     void PrintInvoke(HInvoke* invoke);
     void PrintLong(int64_t value);
-  protected:  // fields
+
     const MethodInfo methodInfo;
   };
 

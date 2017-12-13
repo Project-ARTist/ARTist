@@ -34,10 +34,10 @@ namespace art {
   const bool ArtistLog::VERBOSE_LOGGING = false;
 
   void ArtistLog::LogMethod(const MethodInfo& info) {
-    VLOG(artistd) << "Method " << info.GetMethodName(true);
+    VLOG(artist) << "Method " << info.GetMethodName(true);
     VerbosePrinter printer(info);
     printer.VisitReversePostOrder();
-    VLOG(artistd) << printer.str();
+    VLOG(artist) << printer.str();
   }
 
   void ArtistLog::LogMethod(const MethodInfo& info, std::ostream &out) {
