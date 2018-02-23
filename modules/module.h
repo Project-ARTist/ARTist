@@ -77,6 +77,9 @@ class Module {
   bool _enabled = true;
 };
 
+  // the types of the class factories
+  typedef shared_ptr<Module> create_t();
+
 }  // namespace art
 
 #endif  // ART_MODULES_MODULE_H_
