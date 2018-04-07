@@ -47,9 +47,4 @@ LIBART_COMPILER_SRC_FILES += \
     optimizing/artist/param_finder.cc \
     optimizing/artist/modules/module.cc \
     optimizing/artist/modules/module_manager.cc \
-    optimizing/artist/modules/logtimization/logtimization_artist.cc \
-    optimizing/artist/modules/logtimization/logtimization_module.cc \
-    optimizing/artist/modules/trace/trace_artist.cc \
-    optimizing/artist/modules/trace/trace_module.cc \
-    optimizing/artist/modules/trace/trace_codelib.cc \
     optimizing/artist/verbose_printer.cc
