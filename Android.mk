@@ -21,36 +21,34 @@
 
 # @TODO:
 # - Create own .so for artist
-# - Create own .so for each optimization pass
 
 # Append Artist sourcefiles to LIBART_COMPILER_SRC_FILES variable
 LIBART_COMPILER_SRC_FILES += \
-    optimizing/artist/artist.cc \
-    optimizing/artist/artist_log.cc \
-    optimizing/artist/artist_method_visitor.cc \
-    optimizing/artist/artist_utils.cc \
-    optimizing/artist/error_handler.cc \
-    optimizing/artist/filtering/method_name_filters.cc \
-    optimizing/artist/env/java_env.cc \
-    optimizing/artist/env/codelib_environment.cc \
-    optimizing/artist/env/codelib_symbols.cc \
-    optimizing/artist/env/dexfile_environment.cc \
-    optimizing/artist/injection/injection.cc \
-    optimizing/artist/injection/injection_visitor.cc \
-    optimizing/artist/injection/parameter.cc \
-    optimizing/artist/injection/permissions.cc \
-    optimizing/artist/injection/target.cc \
-    optimizing/artist/injection/visitor_keys.cc \
-    optimizing/artist/injection/universal_artist.cc \
-    optimizing/artist/method_info.cc \
-    optimizing/artist/method_info_factory.cc \
-    optimizing/artist/param_finder.cc \
-    optimizing/artist/modules/module.cc \
-    optimizing/artist/modules/module_manager.cc \
-    optimizing/artist/modules/logtimization/logtimization_artist.cc \
-    optimizing/artist/modules/logtimization/logtimization_module.cc \
-    optimizing/artist/modules/trace/trace_artist.cc \
-    optimizing/artist/modules/trace/trace_module.cc \
-    optimizing/artist/modules/trace/trace_codelib.cc \
-    optimizing/artist/filesystem_helper.cc \
-    optimizing/artist/verbose_printer.cc
+    optimizing/artist/api/modules/artist.cc \
+    optimizing/artist/api/io/artist_log.cc \
+    optimizing/artist/api/utils/artist_utils.cc \
+    optimizing/artist/api/io/error_handler.cc \
+    optimizing/artist/api/filtering/method_name_filters.cc \
+    optimizing/artist/api/env/java_env.cc \
+    optimizing/artist/api/env/codelib_environment.cc \
+    optimizing/artist/api/env/codelib_symbols.cc \
+    optimizing/artist/api/env/dexfile_environment.cc \
+    optimizing/artist/api/injection/injection.cc \
+    optimizing/artist/internal/injection/injection_visitor.cc \
+    optimizing/artist/api/injection/parameter.cc \
+    optimizing/artist/api/injection/target.cc \
+    optimizing/artist/internal/injection/visitor_keys.cc \
+    optimizing/artist/api/injection/injection_artist.cc \
+    optimizing/artist/api/modules/method_info.cc \
+    optimizing/artist/api/modules/method_info_factory.cc \
+    optimizing/artist/internal/utils/param_finder.cc \
+    optimizing/artist/api/modules/module.cc \
+    optimizing/artist/api/modules/module_manager.cc \
+    optimizing/artist/api/io/verbose_printer.cc \
+    optimizing/artist/api/io/filesystem_helper.cc \
+    optimizing/artist/internal/modules/logtimization/logtimization_artist.cc \
+    optimizing/artist/internal/modules/logtimization/logtimization_module.cc \
+    optimizing/artist/internal/modules/trace/trace_artist.cc \
+    optimizing/artist/internal/modules/trace/trace_module.cc \
+    optimizing/artist/internal/modules/trace/trace_codelib.cc \
+
