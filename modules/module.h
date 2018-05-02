@@ -22,6 +22,8 @@
 #include "optimizing/artist/filtering/filter.h"
 #include "optimizing/artist/env/codelib.h"
 #include "optimizing/artist/artist.h"
+#include "optimizing/artist/artist.h"
+#include "optimizing/artist/filesystem_helper.h"
 
 #ifndef ART_MODULES_MODULE_H_
 #define ART_MODULES_MODULE_H_
@@ -35,6 +37,7 @@ namespace art {
  */
 class Module {
  public:
+  explicit Module(const FilesystemHelper fs) : _fs(fs) {}
   virtual ~Module() = default;
 
   /**
@@ -72,6 +75,9 @@ class Module {
    * @return modules' filter or nullptr
    */
   virtual unique_ptr<Filter> getMethodFilter() const;
+
+ protected:
+  const FilesystemHelper _fs;
 
  private:
   bool _enabled = true;

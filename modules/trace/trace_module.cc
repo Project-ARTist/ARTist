@@ -56,4 +56,6 @@ namespace art {
       return dualFilter;
     }
 
+TraceModule::TraceModule(const FilesystemHelper fs) : Module(fs) {}
+
 }  // namespace art

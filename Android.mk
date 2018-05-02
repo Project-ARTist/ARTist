@@ -52,4 +52,5 @@ LIBART_COMPILER_SRC_FILES += \
     optimizing/artist/modules/trace/trace_artist.cc \
     optimizing/artist/modules/trace/trace_module.cc \
     optimizing/artist/modules/trace/trace_codelib.cc \
+    optimizing/artist/filesystem_helper.cc \
     optimizing/artist/verbose_printer.cc

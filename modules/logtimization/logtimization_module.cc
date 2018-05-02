@@ -47,4 +47,6 @@ unique_ptr<Filter> LogtimizationModule::getMethodFilter() const {
   return whiteListFilter;
 }
 
+LogtimizationModule::LogtimizationModule(const FilesystemHelper fs) : Module(fs) {}
+
 }  // namespace art

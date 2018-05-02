@@ -15,12 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @author "Sebastian Weisgerber <weisgerber@cispa.saarland>"
+ * @author "Oliver Schranz <oliver.schranz@cispa.saarland>"
  *
  */
 
 #ifndef ART_ERROR_HANDLER_H_
 #define ART_ERROR_HANDLER_H_
+
+#include <base/macros.h>
 
 using std::string;
 
