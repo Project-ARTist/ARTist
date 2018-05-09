@@ -32,7 +32,7 @@ class LogtimizationModule : public Module {
 
 
  public:
-  unique_ptr<Filter> getMethodFilter() const OVERRIDE;
+  std::pair<unique_ptr<Filter>, unique_ptr<Filter>> getMethodFilters() const OVERRIDE;
 };
 
 }  // namespace art

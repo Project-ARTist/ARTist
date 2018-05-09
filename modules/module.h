@@ -71,7 +71,7 @@ class Module {
    *
    * @return modules' filter or nullptr
    */
-  virtual unique_ptr<Filter> getMethodFilter() const;
+  virtual std::pair<unique_ptr<Filter>, unique_ptr<Filter>> getMethodFilters() const;
 
  private:
   bool _enabled = true;

@@ -39,9 +39,19 @@ namespace art {
     }
 
     // skip android support lib ui methods since they bloat up the log
-    unique_ptr<Filter> TraceModule::getMethodFilter() const {
-      const vector<const string> ui = {"android.support."};
-      return unique_ptr<Filter>(new BlacklistFilter(ui));
+    std::pair<unique_ptr<Filter>, unique_ptr<Filter>> TraceModule::getMethodFilters() const {
+      const vector<const string> blackListDefinition = {
+          "android.support.",
+          "de.heise.android.heiseonlineapp.api.page.Page"
+      };
+      auto blackList = unique_ptr<Filter>(new BlacklistFilter(blackListDefinition));
+
+      const vector<const string> whiteListDefinition = {
+          "de.heise.android.heiseonlineapp."
+      };
+      auto whiteList = unique_ptr<Filter>(new WhitelistFilter(whiteListDefinition));
+
+      return std::make_pair(std::move(blackList), std::move(whiteList));
     }
 
 }  // namespace art
