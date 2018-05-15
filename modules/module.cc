@@ -36,8 +36,8 @@ bool Module::isEnabled() const {
  * The default implementation does not provide a filter and hence artist passes will be created and executed for all
  * methods visible to the compiler.
  */
-std::pair<unique_ptr<Filter>, unique_ptr<Filter>> Module::getMethodFilters() const {
-  return std::make_pair(unique_ptr<Filter>(nullptr), unique_ptr<Filter>(nullptr));
+unique_ptr<Filter> Module::getMethodFilter() const {
+  return unique_ptr<Filter>(nullptr);
 }
 
 }  // namespace art

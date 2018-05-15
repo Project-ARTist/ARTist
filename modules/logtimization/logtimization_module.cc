@@ -39,14 +39,12 @@ shared_ptr<const CodeLib> LogtimizationModule::createCodeLib() const {
 /* (Arbitrary) restriction of compile-time output to "onCreate" methods (Activities, Applications, ...) to reduce
  * logcat spamming.
  */
-std::pair<unique_ptr<Filter>, unique_ptr<Filter>> LogtimizationModule::getMethodFilters() const {
+unique_ptr<Filter> LogtimizationModule::getMethodFilter() const {
   const vector<const string> whiteListSignatures = {
       ".onCreate("
   };
   auto whiteListFilter = unique_ptr<Filter>(new WhitelistFilter(whiteListSignatures, false, true));
-//  const vector<const string> blackListSignatures = {};
-//  auto blackListFilter = new BlacklistFilter(blackListSignatures, false, true);
-  return std::make_pair(unique_ptr<Filter>(nullptr), std::move(whiteListFilter));
+  return whiteListFilter;
 }
 
 }  // namespace art

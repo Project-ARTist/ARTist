@@ -31,7 +31,7 @@ class TraceModule : public Module {
     shared_ptr<const CodeLib> createCodeLib() const OVERRIDE;
 
  public:
-  std::pair<unique_ptr<Filter>, unique_ptr<Filter>> getMethodFilters() const OVERRIDE;
+  unique_ptr<Filter> getMethodFilter() const OVERRIDE;
 };
 
 }  // namespace art

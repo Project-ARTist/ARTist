@@ -28,6 +28,7 @@
 
 using std::vector;
 using std::string;
+using std::unique_ptr;
 
 namespace art {
 
@@ -48,7 +49,7 @@ class MethodNameFilter : public Filter {
   MethodNameFilter& operator= (const MethodNameFilter& other) = default;
   MethodNameFilter& operator= (MethodNameFilter&& other) = default;
 
-  bool accept(MethodInfo &info) OVERRIDE;
+  bool accept(const MethodInfo &info) const OVERRIDE;
 
  private:
   const vector<const string> _names;
@@ -74,6 +75,23 @@ class BlacklistFilter : public MethodNameFilter {
  public:
   BlacklistFilter(const vector<const string>& method_names, bool exact = false, bool signature = false) :
       MethodNameFilter(method_names, false, exact, signature) {}
+};
+
+/**
+ * A filter implementation that checks method names against two filter,
+ * which enables one to create a WhiteList with Blacklisted exceptions.
+ */
+class DualFilter : public Filter {
+  const unique_ptr<Filter> filter1;
+  const unique_ptr<Filter> filter2;
+
+ public:
+  DualFilter(unique_ptr<Filter>& _filter1,
+             unique_ptr<Filter>& _filter2)
+  : filter1(std::move(_filter1))
+  , filter2(std::move(_filter2)) { }
+
+  bool accept(const MethodInfo& info) const OVERRIDE;
 };
 
 }  // namespace art
