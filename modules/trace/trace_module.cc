@@ -42,12 +42,12 @@ namespace art {
     unique_ptr<Filter> TraceModule::getMethodFilter() const {
       const vector<const string> blackListDefinition = {
           "android.support.",
-          "de.heise.android.heiseonlineapp.api.page.Page"
+          "com.package.app.specific.Class"
       };
       auto blackList = unique_ptr<Filter>(new BlacklistFilter(blackListDefinition));
 
       const vector<const string> whiteListDefinition = {
-          "de.heise.android.heiseonlineapp."
+          "com.package.app."
       };
       auto whiteList = unique_ptr<Filter>(new WhitelistFilter(whiteListDefinition));
 
