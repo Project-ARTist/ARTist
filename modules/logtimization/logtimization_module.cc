@@ -40,8 +40,11 @@ shared_ptr<const CodeLib> LogtimizationModule::createCodeLib() const {
  * logcat spamming.
  */
 unique_ptr<Filter> LogtimizationModule::getMethodFilter() const {
-  const vector<const string> onCreate = {".onCreate("};
-  return unique_ptr<Filter>(new WhitelistFilter(onCreate, false, true));
+  const vector<const string> whiteListSignatures = {
+      ".onCreate("
+  };
+  auto whiteListFilter = unique_ptr<Filter>(new WhitelistFilter(whiteListSignatures, false, true));
+  return whiteListFilter;
 }
 
 }  // namespace art
