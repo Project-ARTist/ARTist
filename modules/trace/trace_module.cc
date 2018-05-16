@@ -42,18 +42,8 @@ namespace art {
     unique_ptr<Filter> TraceModule::getMethodFilter() const {
       const vector<const string> blackListDefinition = {
           "android.support.",
-          "com.package.app.specific.Class"
       };
-      auto blackList = unique_ptr<Filter>(new BlacklistFilter(blackListDefinition));
-
-      const vector<const string> whiteListDefinition = {
-          "com.package.app."
-      };
-      auto whiteList = unique_ptr<Filter>(new WhitelistFilter(whiteListDefinition));
-
-      auto dualFilter = unique_ptr<Filter>(new DualFilter(whiteList, blackList));
-
-      return dualFilter;
+      return unique_ptr<Filter>(new BlacklistFilter(blackListDefinition));
     }
 
 TraceModule::TraceModule(const FilesystemHelper fs) : Module(fs) {}
