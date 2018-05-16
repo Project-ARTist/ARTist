@@ -49,7 +49,7 @@ class MethodNameFilter : public Filter {
   MethodNameFilter& operator= (const MethodNameFilter& other) = default;
   MethodNameFilter& operator= (MethodNameFilter&& other) = default;
 
-  bool accept(const MethodInfo &info) const OVERRIDE;
+  bool accept(const MethodInfo &info) OVERRIDE;
 
  private:
   const vector<const string> _names;
@@ -91,7 +91,7 @@ class DualFilter : public Filter {
   : filter1(std::move(_filter1))
   , filter2(std::move(_filter2)) { }
 
-  bool accept(const MethodInfo& info) const OVERRIDE;
+  bool accept(const MethodInfo& info) OVERRIDE;
 };
 
 }  // namespace art

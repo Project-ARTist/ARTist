@@ -25,7 +25,7 @@ namespace art {
 
 // depending on _accept this implementation either works like a whitelist (true) or blacklist (false) and ca be
 // fine-tuned to use exact matches and full signatures.
-bool MethodNameFilter::accept(const art::MethodInfo &info) const {
+bool MethodNameFilter::accept(const art::MethodInfo &info) {
   auto candidate = info.GetMethodName(_signature);
   for (auto name : _names) {
     auto pos = candidate.find(name);
@@ -45,7 +45,7 @@ bool MethodNameFilter::accept(const art::MethodInfo &info) const {
  * @param info
  * @return
  */
-bool DualFilter::accept(const art::MethodInfo& info) const {
+bool DualFilter::accept(const art::MethodInfo& info) {
   return this->filter1->accept(info) && this->filter2->accept(info);
 }
 
