@@ -37,7 +37,7 @@ bool Module::isEnabled() const {
  * methods visible to the compiler.
  */
 unique_ptr<Filter> Module::getMethodFilter() const {
-  return unique_ptr<Filter>(nullptr);
+  return nullptr;
 }
 
 }  // namespace art

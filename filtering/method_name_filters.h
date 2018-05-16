@@ -79,7 +79,7 @@ class BlacklistFilter : public MethodNameFilter {
 
 /**
  * A filter implementation that checks method names against two filter,
- * which enables one to create a WhiteList with Blacklisted exceptions.
+ * which enables one to create a WhiteList with blacklisted exceptions.
  */
 class DualFilter : public Filter {
   const unique_ptr<Filter> filter1;
