@@ -61,19 +61,6 @@ HArtist::HArtist(const MethodInfo& method_info,
                     pass_name, stats)
     , _codelib_instruction(nullptr)
     , _method_info(method_info) {
-  ArtistLog::SetupArtistLogging();
-  const string& VERSION = "00111";
-  LogVersionOnce(VERSION);
-}
-
-// TODO move out of multithreaded area
-void HArtist::LogVersionOnce(const string& VERSION) const {
-  static atomic_flag version_logged = ATOMIC_FLAG_INIT;
-
-  if (!version_logged.test_and_set()) {
-    VLOG(artist) << std::endl
-                 << "HArtist() Version: " << VERSION << std::endl;
-  }
 }
 
 void HArtist::Run() {
@@ -93,13 +80,13 @@ void HArtist::Run() {
   VLOG(artist) << "Artist #" << _method_counter << ": " << method_signature<< " (" << dexFileName << ")";
 
   Setup();
-  RunModule();
+  RunPass();
 }
 
 void HArtist::Setup() {
   VLOG(artist) << "HArtist::Setup()" << std::endl;
 
-  SetupModule();
+  SetupPass();
 
   VLOG(artistd) << "HArtist::Setup() Done" << std::endl;
 }
@@ -124,8 +111,8 @@ const MethodInfo& HArtist::GetMethodInfo() const {
 /**
  * Stub implementation that can but does not have to be overwritten in the concrete module.
  */
-void HArtist::SetupModule() {
-  VLOG(artistd) << "HArtist::SetupModule(): No-op.";
+void HArtist::SetupPass() {
+  VLOG(artistd) << "HArtist::SetupPass(): No-op.";
 }
 
 void HArtist::setDexfileEnvironment(shared_ptr<const DexfileEnvironment> environment) {

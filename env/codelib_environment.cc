@@ -40,8 +40,8 @@ CodeLibEnvironment::CodeLibEnvironment(shared_ptr<const DexfileEnvironment> dexf
                                        jobject jclass_loader)
         : _codelib_dex(codelib_dex_file), _codelib(codelib), _jclass_loader(jclass_loader), _instance_offset(art::MemberOffset(0)) {
   for (auto dex_file : dexfile_env->getAppDexFiles()) {
-      auto symbols = make_shared<CodelibSymbols>(dex_file, codelib, jclass_loader);
-      _symbols[dex_file] = symbols;
+    auto symbols = make_shared<CodelibSymbols>(dex_file, codelib, jclass_loader);
+    _symbols[dex_file] = symbols;
   }
 
   Locks::mutator_lock_->SharedLock(Thread::Current());
@@ -90,7 +90,7 @@ const DexFile* CodeLibEnvironment::getDexFile() const {
 shared_ptr<const CodelibSymbols> CodeLibEnvironment::getCodelibSymbols(const DexFile* dex_file) const {
   auto result = _symbols.find(dex_file);
   if (result == _symbols.end()) {
-      return nullptr;
+    return nullptr;
   }
   return result->second;
 }

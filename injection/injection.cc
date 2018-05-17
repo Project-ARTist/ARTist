@@ -30,7 +30,7 @@ namespace art {
 // we need a `shared_ptr` for `Parameter` since it is an abstract class and hence we cannot create `vector<Parameter>`.
 Injection::Injection(const string &_signature,
                      vector<shared_ptr<const Parameter>> _parameter,
-                     vector<const Target> _injection_target)
+                     vector<shared_ptr<const Target>> _injection_target)
     : signature(_signature)
     , parameters(_parameter)
     , injection_targets(_injection_target) {}
@@ -45,7 +45,7 @@ const string Injection::ToString() const {
   string_ = (string_.substr(0, string_.size() - 3) + "\n");
 
   for (auto && target : injection_targets) {
-    string_ += (">> T: " + target.GetTargetSignature() + "\n");
+    string_ += (">> T: " + target->GetTargetSignature() + "\n");
   }
   return string_;
 }
@@ -59,7 +59,7 @@ const vector<shared_ptr<const Parameter>>& Injection::GetParameters() const {
   return parameters;
 }
 
-const vector<const Target>& Injection::GetInjectionTargets() const {
+const vector<shared_ptr<const Target>>& Injection::GetInjectionTargets() const {
   return injection_targets;
 }
 

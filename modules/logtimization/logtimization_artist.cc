@@ -47,7 +47,7 @@ HLogtimization::HLogtimization(const MethodInfo& method_info,
 
 HLogtimization::~HLogtimization() = default;
 
-void HLogtimization::RunModule() {
+void HLogtimization::RunPass() {
   CHECK(graph_ != nullptr);
   VLOG(artist) << "<##########################################################>";
 

@@ -41,20 +41,20 @@ class Injection {
  public:
   Injection(const string& _signature,
             vector<shared_ptr<const Parameter>> _parameter,
-            vector<const Target> _injection_target);
+            vector<shared_ptr<const Target>> _injection_target);
 
   const string ToString() const;
 
   const string& GetSignature() const;
   const vector<shared_ptr<const Parameter>>& GetParameters() const;
-  const vector<const Target>& GetInjectionTargets() const;
+  const vector<shared_ptr<const Target>>& GetInjectionTargets() const;
 
  private:
   string signature;
 
   vector<shared_ptr<const Parameter>> parameters;
 
-  vector<const Target> injection_targets;
+  vector<shared_ptr<const Target>> injection_targets;
 };
 
 ostream& operator<<(ostream& os, const Injection& injection);

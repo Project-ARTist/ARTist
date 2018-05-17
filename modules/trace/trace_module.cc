@@ -29,9 +29,8 @@ using std::unique_ptr;
 
 namespace art {
 
-    shared_ptr<HArtist> TraceModule::createPass(const MethodInfo& method_info) const {
-//        return new /*(graph->GetArena())*/ HTraceArtist(method_info);
-        return make_shared<HTraceArtist>(method_info);
+    HArtist* TraceModule::createPass(const MethodInfo& method_info) const {
+        return new (method_info.GetGraph()->GetArena()) HTraceArtist(method_info);
     }
 
     shared_ptr<const CodeLib> TraceModule::createCodeLib() const {

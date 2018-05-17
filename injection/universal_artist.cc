@@ -45,9 +45,9 @@ using std::sort;
 
 namespace art {
 
-void HUniversalArtist::SetupModule() {
+void HUniversalArtist::SetupPass() {
     // get module-provided injections
-    this->injections = ProvideInjections();
+    this->_injections = ProvideInjections();
     // fill our internal data structures
     SetupInjections();  // FIXME this is horibly slow AND redundant since it is identical in each instance
 }
@@ -57,15 +57,15 @@ void HUniversalArtist::SetupInjections() {
 
 //  VLOG(artist) << "HUniversalArtist::SetupInjections() InjectionCount Total #" << this->injections.size();
   int32_t targetCounter = 0;
-  for (auto const & injection : this->injections) {
-      VLOG(artistd) << "HUniversalArtist::SetupInjections() Method:      " << injection.GetSignature();
-      auto injection_targets = injection.GetInjectionTargets();
+  for (auto const injection : this->_injections) {
+      VLOG(artistd) << "HUniversalArtist::SetupInjections() Method:      " << injection->GetSignature();
+      auto injection_targets = injection->GetInjectionTargets();
 
       VLOG(artistd) << "HUniversalArtist::SetupInjections() Local TargetCount  #" << injection_targets.size();
       // TODO Bug: Using Injection with multiple targets that have the same InjectionTarget
       //           Leads to duplicate injections
       for (auto && target : injection_targets) {
-          switch ((int32_t)target.GetTargetType()) {
+          switch ((int32_t)target->GetTargetType()) {
               case InjectionTarget::METHOD_CALL_BEFORE:
                   ++targetCounter;
                   this->EmplaceTableEntry(VisitorKeys::H_INVOKE, injection);
@@ -97,61 +97,53 @@ void HUniversalArtist::SetupInjections() {
           }
       }
   }
-  VLOG(artistd) << "HUniversalArtist::SetupInjections() InjectionCount Total #" << this->injections.size();
+  VLOG(artistd) << "HUniversalArtist::SetupInjections() InjectionCount Total #" << this->_injections.size();
   VLOG(artistd) << "HUniversalArtist::SetupInjections() TargetCount Total    #" << targetCounter;
   VLOG(artistd) << "HUniversalArtist::SetupInjections() DONE";
   VLOG(artistd) << endl;
 }
 
 
-void HUniversalArtist::RunModule()  {
-  VLOG(artistd) << "Run Module " << this->GetPassName();
-  HInjectionVisitor injectionVisitor(shared_from_this(), graph_);
+void HUniversalArtist::RunPass()  {
+  VLOG(artistd) << "Run Pass " << this->GetPassName();
+  HInjectionVisitor injectionVisitor(this, graph_);
   injectionVisitor.VisitInsertionOrder();
-  VLOG(artistd) << "Run Module DONE";
+  VLOG(artistd) << "Run Pass DONE";
 }
 
 // injection-specifics
 
-const vector<Injection>& HUniversalArtist::GetInjections() {
+const vector<shared_ptr<const Injection>>& HUniversalArtist::GetInjections() {
     VLOG(artistd) << "HUniversalArtist::GetInjections()";
-    return this->injections;
+    return this->_injections;
 }
 
-const unordered_map<string, vector<Injection>>& HUniversalArtist::GetInjectionTable() {
-    return this->injection_table;
+const unordered_map<string, vector<shared_ptr<const Injection>>>& HUniversalArtist::GetInjectionTable() {
+    return this->_injection_table;
 }
 
-const vector<Injection> HUniversalArtist::GetInjectionTableEntry(const string& callback_key) {
-    VLOG(artistd) << "HUniversalArtist::GetInjectionTableEntry()";
-    unordered_map<string, vector<Injection>>::const_iterator found_item =
-            this->injection_table.find(callback_key);
-
-    if (found_item == this->injection_table.end()) {
-        vector<Injection> localInjections = vector<Injection>();
-
-        VLOG(artistd) << "HUniversalArtist::GetInjectionTableEntry() DONE: " << localInjections.size();
-        return localInjections;
-    } else {
-        auto localInjections = this->injection_table.at(callback_key);
-
-        VLOG(artistd) << "HUniversalArtist::GetInjectionTableEntry() DONE: " << localInjections.size();
-        return localInjections;
-    }
+const vector<shared_ptr<const Injection>> HUniversalArtist::GetInjectionTableEntry(const string& callback_key) {
+  auto found_item = this->_injection_table.find(callback_key);
+  vector<shared_ptr<const Injection>> local_injections;
+  if (found_item == this->_injection_table.end()) {
+    return local_injections;
+  } else {
+    local_injections = this->_injection_table.at(callback_key);
+    return local_injections;
+  }
 }
 
-bool HUniversalArtist::EmplaceTableEntry(const string& callback_key,
-                                           const Injection& single_injection) {
+bool HUniversalArtist::EmplaceTableEntry(const string& callback_key, shared_ptr<const Injection> single_injection) {
     VLOG(artistd) << "HUniversalArtist::EmplaceTableEntry()";
 
-    vector<Injection> new_injections = GetInjectionTableEntry(callback_key);
+    auto new_injections = GetInjectionTableEntry(callback_key);
     VLOG(artistd) << "HUniversalArtist::EmplaceTableEntry() " << callback_key
                   << " Table Contained    # " << new_injections.size();
     new_injections.push_back(single_injection);
     VLOG(artistd) << "HUniversalArtist::EmplaceTableEntry() " << callback_key
                   << " Table Contains Now # " << new_injections.size();
-    this->injection_table.erase(callback_key);
-    this->injection_table.emplace(callback_key, new_injections);
+    this->_injection_table.erase(callback_key);
+    this->_injection_table.emplace(callback_key, new_injections);
     VLOG(artistd) << "HUniversalArtist::EmplaceTableEntry() DONE";
     return true;
 }

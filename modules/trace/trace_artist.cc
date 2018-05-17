@@ -48,21 +48,21 @@ using std::sort;
 
 namespace art {
 
-vector<Injection> HTraceArtist::ProvideInjections() const {
+vector<shared_ptr<const Injection>> HTraceArtist::ProvideInjections() const {
   VLOG(artistd) << "HTraceArtist::ProvideInjections()";
 
   vector<shared_ptr<const Parameter>> params;
   auto param = make_shared<const Char>();
   params.push_back(param);
 
-  vector<const Target> targets;
-  const Target target(Target::GENERIC_TARGET, InjectionTarget::METHOD_END);
+  vector<shared_ptr<const Target>> targets;
+  auto target = make_shared<const Target>(Target::GENERIC_TARGET, InjectionTarget::METHOD_END);
 //  const Target target(".onCreate(", InjectionTarget::METHOD_START);
   targets.push_back(target);
 
-  Injection injection(TraceCodeLib::TRACELOG, params, targets);
+  auto injection = make_shared<const Injection>(TraceCodeLib::TRACELOG, params, targets);
 
-  vector<Injection> results;
+  vector<shared_ptr<const Injection>> results;
   results.push_back(injection);
   return results;
 }

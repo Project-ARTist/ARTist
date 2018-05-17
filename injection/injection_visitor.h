@@ -32,16 +32,16 @@ namespace art {
 
 class HInjectionVisitor : public HArtistMethodVisitor {
  private:
-  shared_ptr<HUniversalArtist> artist;
+  HUniversalArtist* artist;
   HGraph* graph;
 
  private:
-  void InjectInstruction(HInstruction* instruction, const Injection& injection);
+  void InjectInstruction(HInstruction* instruction, shared_ptr<const Injection>& injection);
 
   string GetInvokedMethod(HInstruction* instruction);
 
  public:
-  explicit HInjectionVisitor(shared_ptr<HUniversalArtist> parent_artist, HGraph* method_graph);
+  explicit HInjectionVisitor(HUniversalArtist* parent_artist, HGraph* method_graph);
 
  public:
   static bool MethodSignatureStartsWith(const string& method_signature, const string& search_string);

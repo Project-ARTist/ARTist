@@ -31,7 +31,7 @@
 
 namespace art {
 
-HInjectionVisitor::HInjectionVisitor(shared_ptr<HUniversalArtist> parent_artist,
+HInjectionVisitor::HInjectionVisitor(HUniversalArtist* parent_artist,
                                      HGraph* method_graph)
     : HArtistMethodVisitor(method_graph)
     , artist(parent_artist)
@@ -41,27 +41,27 @@ HInjectionVisitor::HInjectionVisitor(shared_ptr<HUniversalArtist> parent_artist,
   VLOG(artistd) << "HInjectionVisitor() Injections # " << artist->GetInjections().size();
 }
 
-void HInjectionVisitor::InjectInstruction(HInstruction* instruction, const Injection& injection) {
+void HInjectionVisitor::InjectInstruction(HInstruction* instruction, shared_ptr<const Injection>& injection) {
   DCHECK(instruction != nullptr);
   VLOG(artistd) << "HInjectionVisitor::InjectInstruction() instruction: " << instruction << std::flush;
 //  VLOG(artist) << "HInjectionVisitor::InjectInstruction() injection:   " << &injection<< std::flush;
 
   // ParameterFactory for creating primitives / objects
-  VLOG(artistd) << "HInjectionVisitor::InjectInstruction() ParameterCount: " << injection.GetParameters().size();
+  VLOG(artistd) << "HInjectionVisitor::InjectInstruction() ParameterCount: " << injection->GetParameters().size();
 //  VLOG(artist) << "HInjectionVisitor::InjectInstruction() TargetCount:    " << injection.GetInjectionTargets().size();
 
   int32_t parameter_count = 0;
-  for (auto && parameter : injection.GetParameters()) {
+  for (auto && parameter : injection->GetParameters()) {
     VLOG(artistd) << "HInjectionVisitor::InjectInstruction() Parameter #"
                   << parameter_count++
                   << ": "
                   << Parameter::TypeToString(parameter->GetType());
   }
 
-  for (auto && target : injection.GetInjectionTargets()) {
+  for (auto && target : injection->GetInjectionTargets()) {
     std::string check_signature;
 
-    switch (target.GetTargetType()) {
+    switch (target->GetTargetType()) {
       case InjectionTarget::METHOD_CALL_BEFORE:
         check_signature = GetInvokedMethod(instruction);
         break;
@@ -79,7 +79,7 @@ void HInjectionVisitor::InjectInstruction(HInstruction* instruction, const Injec
     }
     VLOG(artistd) << "HInjectionVisitor::InjectInstruction() check_signature:  " << check_signature;
 
-    const std::string TARGET_SIGNATURE = target.GetTargetSignature();
+    const std::string TARGET_SIGNATURE = target->GetTargetSignature();
     VLOG(artistd) << "HInjectionVisitor::InjectInstruction() TARGET_SIGNATURE: " << TARGET_SIGNATURE;
 
     if (TARGET_SIGNATURE == Target::GENERIC_TARGET
@@ -99,13 +99,13 @@ void HInjectionVisitor::InjectInstruction(HInstruction* instruction, const Injec
       ArtUtils::SetupFunctionParams(graph, injection, function_params);
 
       HInstruction* injection_location = nullptr;
-      if (target.GetTargetType() == InjectionTarget::METHOD_START) {
+      if (target->GetTargetType() == InjectionTarget::METHOD_START) {
         injection_location = instruction->GetBlock()->GetGraph()->GetEntryBlock()->GetLastInstruction();
       } else {
         injection_location = instruction;
       }
       ArtUtils::InjectMethodCall(injection_location,
-                                 injection.GetSignature(),
+                                 injection->GetSignature(),
                                  function_params,
                                  artist->getCodeLibEnvironment(),
                                  Primitive::Type::kPrimVoid,
@@ -189,7 +189,7 @@ bool HInjectionVisitor::MethodSignatureContains(const std::string& method_signat
 
 void HInjectionVisitor::VisitInvoke(HInvoke* instruction) {
   DCHECK(instruction != nullptr);
-  const std::vector<Injection>& checkInjections = artist->GetInjectionTableEntry(VisitorKeys::H_INVOKE);
+  auto checkInjections = artist->GetInjectionTableEntry(VisitorKeys::H_INVOKE);
 
   VLOG(artistd) << "HInjectionVisitor::VisitInvoke() Injections #" << checkInjections.size()
                 << " INVOKED: " << GetInvokedMethod(instruction);
@@ -204,7 +204,7 @@ void HInjectionVisitor::VisitInvoke(HInvoke* instruction) {
 
 void HInjectionVisitor::VisitInvokeInterface(HInvokeInterface* instruction) {
   DCHECK(instruction != nullptr);
-  const std::vector<Injection>& checkInjections = artist->GetInjectionTableEntry(VisitorKeys::H_INVOKE_INTERFACE);
+  auto checkInjections = artist->GetInjectionTableEntry(VisitorKeys::H_INVOKE_INTERFACE);
 
   VLOG(artistd) << "HInjectionVisitor::VisitInvokeInterface() Injections #" << checkInjections.size()
                 << " INVOKED: " << GetInvokedMethod(instruction);
@@ -216,7 +216,7 @@ void HInjectionVisitor::VisitInvokeInterface(HInvokeInterface* instruction) {
 
 void HInjectionVisitor::VisitInvokeStaticOrDirect(HInvokeStaticOrDirect* instruction) {
   DCHECK(instruction != nullptr);
-  const std::vector<Injection>& checkInjections = artist->GetInjectionTableEntry(VisitorKeys::H_INVOKE_STATIC_OR_DIRECT);
+  auto checkInjections = artist->GetInjectionTableEntry(VisitorKeys::H_INVOKE_STATIC_OR_DIRECT);
 
   VLOG(artistd) << "HInjectionVisitor::VisitInvokeStaticOrDirect() Injections #" << checkInjections.size()
                 << " INVOKED: " << GetInvokedMethod(instruction);
@@ -231,7 +231,7 @@ void HInjectionVisitor::VisitInvokeVirtual(HInvokeVirtual* instruction) {
   DCHECK(instruction != nullptr);
   VLOG(artistd) << "HInjectionVisitor::VisitInvokeVirtual()";
 
-  const std::vector<Injection>& checkInjections = artist->GetInjectionTableEntry(VisitorKeys::H_INVOKE_VIRTUAL);
+  auto checkInjections = artist->GetInjectionTableEntry(VisitorKeys::H_INVOKE_VIRTUAL);
 
   VLOG(artistd) << "HInjectionVisitor::VisitInvokeVirtual() Injections #" << checkInjections.size()
                 << " INVOKED: " << GetInvokedMethod(instruction);
@@ -246,7 +246,7 @@ void HInjectionVisitor::VisitInvokeVirtual(HInvokeVirtual* instruction) {
 
 void HInjectionVisitor::VisitReturn(HReturn* instruction) {
   DCHECK(instruction != nullptr);
-  const std::vector<Injection>& checkInjections = artist->GetInjectionTableEntry(VisitorKeys::H_RETURN);
+  auto checkInjections = artist->GetInjectionTableEntry(VisitorKeys::H_RETURN);
   VLOG(artistd) << "HInjectionVisitor::VisitReturn() Injections #" << checkInjections.size()
                 << " PARENT: " << this->artist->GetMethodInfo().GetMethodName(true);
 
@@ -260,7 +260,7 @@ void HInjectionVisitor::VisitReturnVoid(HReturnVoid* instruction) {
   VLOG(artistd) << "HInjectionVisitor::VisitReturnVoid()" << std::flush;
   DCHECK(instruction != nullptr);
 
-  const std::vector<Injection>& checkInjections = artist->GetInjectionTableEntry(VisitorKeys::H_RETURN_VOID);
+  auto checkInjections = artist->GetInjectionTableEntry(VisitorKeys::H_RETURN_VOID);
 
   VLOG(artistd) << "HInjectionVisitor::VisitReturnVoid() Injections #" << checkInjections.size()
                 << " PARENT: " << this->artist->GetMethodInfo().GetMethodName(true);

@@ -34,16 +34,8 @@ enum InjectionTarget { NO_INJECTION = -1
                      , METHOD_CALL_BEFORE
                      , METHOD_CALL_AFTER };
 
-/** Defines where the MethodCall should get injected
+/** Defines where the MethodCall should get injected. Currently available targets are listed in ```InjectionTarget```.
  *
- * Currently:
- *
- * - Start of Method
- * - End of MethodCall
- * - Before MethodCall
- * - After Method
- *
- * Those are the most important use cases for the first Release.
  * Proper Modular Implementation could/should use subclassing
  * of @see Target.
  *
@@ -51,13 +43,8 @@ enum InjectionTarget { NO_INJECTION = -1
 class Target {
  public:
   Target(const string& targetSignature, InjectionTarget targetType);
-  Target(const Target& copy);
-  virtual ~Target();
-
-  Target& operator= (const Target& other);
 
   const string GetTargetSignature() const;
-
   InjectionTarget GetTargetType() const;
 
  public:

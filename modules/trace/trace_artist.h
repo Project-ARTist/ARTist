@@ -45,7 +45,7 @@ class HTraceArtist : public HUniversalArtist {
     // Nothing
   }
 
-  virtual vector<Injection> ProvideInjections() const OVERRIDE;
+  virtual vector<shared_ptr<const Injection>> ProvideInjections() const OVERRIDE;
 };
 
 }  // namespace art

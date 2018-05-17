@@ -467,11 +467,11 @@ return argument_position;
 }
 
 void ArtUtils::SetupFunctionParams(HGraph* graph,
-                                   const Injection& injection,
+                                   shared_ptr<const Injection>& injection,
                                    vector<HInstruction*>& function_parameters) {
   VLOG(artistd) << "ArtUtils::SetupFunctionParams()";
-  if (injection.GetParameters().size() > 0) {
-    for (auto && parameter : injection.GetParameters()) {
+  if (injection->GetParameters().size() > 0) {
+    for (auto && parameter : injection->GetParameters()) {
       switch (parameter->GetType()) {
         case ParameterType::tBoolean: {
           auto paramBoolean = static_pointer_cast<const Boolean>(parameter);

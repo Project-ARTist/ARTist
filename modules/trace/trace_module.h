@@ -27,7 +27,7 @@
 namespace art {
 
 class TraceModule : public Module {
-    shared_ptr<HArtist> createPass(const MethodInfo& method_info) const OVERRIDE;
+    HArtist* createPass(const MethodInfo& method_info) const OVERRIDE;
     shared_ptr<const CodeLib> createCodeLib() const OVERRIDE;
 
  public:

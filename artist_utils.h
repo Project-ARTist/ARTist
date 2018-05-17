@@ -94,7 +94,7 @@ namespace art {
 
     static uint32_t SetupInstructionArguments(HInvoke* instruction, vector<HInstruction*>& instruction_arguments);
     static void SetupFunctionParams(HGraph* graph,
-                                    const Injection&,
+                                    shared_ptr<const Injection>& injection,
                                     vector<HInstruction*>& function_parameters);
 
     static bool IsNativeMethod(HInvoke* instruction);

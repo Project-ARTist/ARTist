@@ -30,23 +30,6 @@ Target::Target(const string& targetSignature, InjectionTarget targetType)
     , target_type(targetType) {
 }
 
-Target::Target(const Target& copy)
-    : target_signature(copy.GetTargetSignature())
-    , target_type(copy.GetTargetType()) {
-}
-
-Target::~Target() = default;
-
-Target& Target::operator= (const Target& other) {
-  // check for self-assignment
-  if (&other == this) {
-    return *this;
-  }
-  target_signature = other.GetTargetSignature();
-  target_type = other.GetTargetType();
-  return *this;
-}
-
 const string Target::GetTargetSignature() const {
   return this->target_signature;
 }

@@ -49,7 +49,7 @@ class HLogtimization : public HArtist {
 
   ~HLogtimization() OVERRIDE;
 
-  void RunModule() OVERRIDE;
+  void RunPass() OVERRIDE;
 };
 
 }  // namespace art

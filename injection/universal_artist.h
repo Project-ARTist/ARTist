@@ -36,7 +36,7 @@ namespace art {
  * where and when.
  * This is well suited to build, e.g., inline reference monitors or logging modules where code is only added.
  */
-class HUniversalArtist : public HArtist, public enable_shared_from_this<HUniversalArtist> {
+class HUniversalArtist : public HArtist {
  public:
   explicit HUniversalArtist(const MethodInfo& method_info,
 #ifdef BUILD_MARSHMALLOW
@@ -50,17 +50,17 @@ class HUniversalArtist : public HArtist, public enable_shared_from_this<HUnivers
 #endif
         , pass_name
         , stats)
-      , injections {}
-      , injection_table {} {}
+      , _injections {}
+      , _injection_table {} {}
 
   // artist module interface
-  void SetupModule() OVERRIDE;
-  void RunModule() OVERRIDE;
+  void SetupPass() OVERRIDE;
+  void RunPass() OVERRIDE;
 
-  const vector<Injection>& GetInjections();
-  const unordered_map<string, vector<Injection>>& GetInjectionTable();
-  const vector<Injection> GetInjectionTableEntry(const string& callback_key);
-  bool EmplaceTableEntry(const string& callback_key, const Injection& single_injection);
+  const vector<shared_ptr<const Injection>>& GetInjections();
+  const unordered_map<string, vector<shared_ptr<const Injection>>>& GetInjectionTable();
+  const vector<shared_ptr<const Injection>> GetInjectionTableEntry(const string& callback_key);
+  bool EmplaceTableEntry(const string& callback_key, shared_ptr<const Injection> single_injection);
 
  protected:
   /**
@@ -69,15 +69,15 @@ class HUniversalArtist : public HArtist, public enable_shared_from_this<HUnivers
    *
    * @return list of injection policies
    */
-  virtual vector<Injection> ProvideInjections() const = 0;
+  virtual vector<shared_ptr<const Injection>> ProvideInjections() const = 0;
 
  private:
   void SetupInjections();
 
-  vector<Injection> injections;
+  vector<shared_ptr<const Injection>> _injections;
 
   // Use @see VisitorKeys
-  unordered_map<string, vector<Injection>> injection_table;
+  unordered_map<string, vector<shared_ptr<const Injection>>> _injection_table;
 };
 
 }  // namespace art

@@ -27,9 +27,8 @@ using std::make_shared;
 
 namespace art {
 
-shared_ptr<HArtist> LogtimizationModule::createPass(const MethodInfo& method_info) const {
-//  return new /*(graph->GetArena())*/ HLogtimization(method_info);
-  return make_shared<HLogtimization>(method_info);
+HArtist* LogtimizationModule::createPass(const MethodInfo& method_info) const {
+  return new (method_info.GetGraph()->GetArena()) HLogtimization(method_info);
 }
 
 shared_ptr<const CodeLib> LogtimizationModule::createCodeLib() const {

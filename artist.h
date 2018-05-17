@@ -78,21 +78,20 @@ class HArtist : public HOptimization {
   static uint32_t _method_counter;
 
  protected:
-  void LogVersionOnce(const string& VERSION) const;
   void Setup();
 
   // Module API
 
   /**
-   * Initializes the module. Concrete modules can but do not have to overwrite this function. The default implementation
-   * is a no-op.
+   * Initializes the artist instrumentation pass. Concrete passes can but do not have to overwrite this function.
+   * The default implementation is a no-op.
    */
-  virtual void SetupModule();
+  virtual void SetupPass();
 
   /**
-   * Execute the module's actual logic. All operations that change the current method should be done here.
+   * Execute the instrumentation pass' actual logic. All operations that change the current method should be done here.
    */
-  virtual void RunModule() = 0;
+  virtual void RunPass() = 0;
 };
 
 }  // namespace art
