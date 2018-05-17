@@ -61,7 +61,9 @@ void HInjectionVisitor::InjectInstruction(HInstruction* instruction, shared_ptr<
   for (auto && target : injection->GetInjectionTargets()) {
     std::string check_signature;
 
-    switch (target->GetTargetType()) {
+    auto target_type = target->GetTargetType();
+
+    switch (target_type) {
       case InjectionTarget::METHOD_CALL_BEFORE:
         check_signature = GetInvokedMethod(instruction);
         break;
@@ -99,17 +101,20 @@ void HInjectionVisitor::InjectInstruction(HInstruction* instruction, shared_ptr<
       ArtUtils::SetupFunctionParams(graph, injection, function_params);
 
       HInstruction* injection_location = nullptr;
-      if (target->GetTargetType() == InjectionTarget::METHOD_START) {
+      if (target_type == InjectionTarget::METHOD_START) {
         injection_location = instruction->GetBlock()->GetGraph()->GetEntryBlock()->GetLastInstruction();
       } else {
         injection_location = instruction;
       }
+
+      bool before = (target_type != InjectionTarget::METHOD_CALL_AFTER);
+
       ArtUtils::InjectMethodCall(injection_location,
                                  injection->GetSignature(),
                                  function_params,
                                  artist->getCodeLibEnvironment(),
                                  Primitive::Type::kPrimVoid,
-                                 true);
+                                 before);
     } else {
       VLOG(artistd) << "HInjectionVisitor::InjectInstruction() Signature Fail! HAVE:   " << check_signature << std::endl
                     << "HInjectionVisitor::InjectInstruction() Signature Fail! TARGET: " << TARGET_SIGNATURE;

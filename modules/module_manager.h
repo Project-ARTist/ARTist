@@ -59,7 +59,7 @@ class ModuleManager {
     ~ModuleManager() = default;
 
  private:
-    ModuleManager() : init_flag(false), _modules {}, _dex_file_env(), _environments {} {}
+    ModuleManager() : _init_flag(false), _modules {}, _dex_file_env(), _environments {} {}
 
 // regular logic
  public:
@@ -75,7 +75,7 @@ class ModuleManager {
     bool initialized() const;
 
  private:
-    atomic_bool init_flag;
+    atomic_bool _init_flag;
     map<ModuleId, shared_ptr<Module>> _modules;
     shared_ptr<DexfileEnvironment> _dex_file_env;
     map<ModuleId, shared_ptr<CodeLibEnvironment>> _environments;

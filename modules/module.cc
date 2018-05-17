@@ -39,5 +39,4 @@ bool Module::isEnabled() const {
 unique_ptr<Filter> Module::getMethodFilter() const {
   return nullptr;
 }
-
 }  // namespace art

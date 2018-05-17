@@ -32,7 +32,6 @@ class TraceModule : public Module {
 
  public:
   explicit TraceModule(const FilesystemHelper fs);
-
   unique_ptr<Filter> getMethodFilter() const OVERRIDE;
 };
 

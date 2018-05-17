@@ -71,7 +71,7 @@ const map<ModuleId, shared_ptr<Module>> ModuleManager::getModules() const {
 
 void ModuleManager::initializeModules(vector<const DexFile*> dex_files, jobject jclass_loader) {
   VLOG(artistd) << "ModuleManager: initializing modules ";
-  if (init_flag.exchange(true)) {  // atomic check and set
+  if (_init_flag.exchange(true)) {  // atomic check and set
       string msg = "ModuleManager: Attempting to initialize modules more than once.";
     ErrorHandler::abortCompilation(msg);
   }
@@ -110,10 +110,10 @@ void ModuleManager::initializeModules(vector<const DexFile*> dex_files, jobject 
   }
 
   VLOG(artistd) << "ModuleManager: initialized " << _environments.size() << " codelib environments (" << _modules.size() << " modules)";
-  init_flag = true;
+  _init_flag = true;
 }
 
   bool ModuleManager::initialized() const {
-      return init_flag;
+      return _init_flag;
   }
 }  // namespace art

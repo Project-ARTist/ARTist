@@ -25,7 +25,7 @@ namespace art {
 
 // depending on _accept this implementation either works like a whitelist (true) or blacklist (false) and ca be
 // fine-tuned to use exact matches and full signatures.
-bool MethodNameFilter::accept(const art::MethodInfo &info) {
+bool MethodNameFilter::accept(const MethodInfo &info) {
   auto candidate = info.GetMethodName(_signature);
   for (auto name : _names) {
     auto pos = candidate.find(name);

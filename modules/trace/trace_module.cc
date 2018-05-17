@@ -29,22 +29,24 @@ using std::unique_ptr;
 
 namespace art {
 
-    HArtist* TraceModule::createPass(const MethodInfo& method_info) const {
-        return new (method_info.GetGraph()->GetArena()) HTraceArtist(method_info);
-    }
+HArtist* TraceModule::createPass(const MethodInfo& method_info) const {
+    return new (method_info.GetGraph()->GetArena()) HTraceArtist(method_info);
+}
 
-    shared_ptr<const CodeLib> TraceModule::createCodeLib() const {
-        return make_shared<TraceCodeLib>();
-    }
+shared_ptr<const CodeLib> TraceModule::createCodeLib() const {
+    return make_shared<TraceCodeLib>();
+}
 
-    // skip android support lib ui methods since they bloat up the log
-    unique_ptr<Filter> TraceModule::getMethodFilter() const {
-      const vector<const string> blackListDefinition = {
-          "android.support.",
-      };
-      return unique_ptr<Filter>(new BlacklistFilter(blackListDefinition));
-    }
+// skip android support lib ui methods since they bloat up the log
+unique_ptr<Filter> TraceModule::getMethodFilter() const {
+  const vector<const string> blackListDefinition = {
+      "android.support.",
+  };
+  return unique_ptr<Filter>(new BlacklistFilter(blackListDefinition));
+}
 
 TraceModule::TraceModule(const FilesystemHelper fs) : Module(fs) {}
+
+
 
 }  // namespace art
