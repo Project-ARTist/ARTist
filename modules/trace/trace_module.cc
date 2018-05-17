@@ -42,7 +42,7 @@ unique_ptr<Filter> TraceModule::getMethodFilter() const {
   const vector<const string> blackListDefinition = {
       "android.support.",
   };
-  return unique_ptr<Filter>(new BlacklistFilter(blackListDefinition));
+  return unique_ptr<Filter>(new MethodNameBlacklist(blackListDefinition));
 }
 
 TraceModule::TraceModule(const FilesystemHelper fs) : Module(fs) {}

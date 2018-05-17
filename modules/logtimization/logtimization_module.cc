@@ -42,7 +42,7 @@ unique_ptr<Filter> LogtimizationModule::getMethodFilter() const {
   const vector<const string> whiteListSignatures = {
       ".onCreate("
   };
-  auto whiteListFilter = unique_ptr<Filter>(new WhitelistFilter(whiteListSignatures, false, true));
+  auto whiteListFilter = unique_ptr<Filter>(new MethodNameWhitelist(whiteListSignatures, false, true));
   return whiteListFilter;
 }
 

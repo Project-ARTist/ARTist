@@ -61,9 +61,9 @@ class MethodNameFilter : public Filter {
 /**
  * A filter implementation that checks candidate method names against a whitelist.
  */
-class WhitelistFilter : public MethodNameFilter {
+class MethodNameWhitelist : public MethodNameFilter {
  public:
-  WhitelistFilter(const vector<const string>& method_names, bool exact = false, bool signature = false) :
+  MethodNameWhitelist(const vector<const string>& method_names, bool exact = false, bool signature = false) :
       MethodNameFilter(method_names, true, exact, signature) {}
 };
 
@@ -71,9 +71,9 @@ class WhitelistFilter : public MethodNameFilter {
  * A filter implementation that checks candidate method names against a blacklist.
  */
 
-class BlacklistFilter : public MethodNameFilter {
+class MethodNameBlacklist : public MethodNameFilter {
  public:
-  BlacklistFilter(const vector<const string>& method_names, bool exact = false, bool signature = false) :
+  MethodNameBlacklist(const vector<const string>& method_names, bool exact = false, bool signature = false) :
       MethodNameFilter(method_names, false, exact, signature) {}
 };
 
