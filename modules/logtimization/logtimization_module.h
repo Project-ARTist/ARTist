@@ -32,7 +32,7 @@ class LogtimizationModule : public Module {
 
 
  public:
-  explicit LogtimizationModule(const FilesystemHelper fs);
+  explicit LogtimizationModule(shared_ptr<const FilesystemHelper> fs);
 
   unique_ptr<Filter> getMethodFilter() const OVERRIDE;
 };

@@ -18,7 +18,6 @@
  * @author "Oliver Schranz <oliver.schranz@cispa.saarland>"
  *
  */
-
 #include "optimizing/artist/filtering/filter.h"
 #include "optimizing/artist/env/codelib.h"
 #include "optimizing/artist/artist.h"
@@ -37,7 +36,7 @@ namespace art {
  */
 class Module {
  public:
-  explicit Module(const FilesystemHelper fs) : _fs(fs) {}
+  explicit Module(shared_ptr<const FilesystemHelper> fs) : _fs(fs) {}
   virtual ~Module() = default;
 
   /**
@@ -77,7 +76,8 @@ class Module {
   virtual unique_ptr<Filter> getMethodFilter() const;
 
  protected:
-  const FilesystemHelper _fs;
+  // nullable: fs access is not always supported
+  shared_ptr<const FilesystemHelper> _fs;
 
  private:
   bool _enabled = true;

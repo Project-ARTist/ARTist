@@ -23,9 +23,14 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/stat.h>
+#include <array>
+#include <memory>
 
+#include "base/logging.h"
 #include "filesystem_helper.h"
 #include "error_handler.h"
+
+using std::make_shared;
 
 namespace art {
 
@@ -53,13 +58,13 @@ FilesystemHelper::FilesystemHelper(const string base_path)
 }
 
 bool FilesystemHelper::isFile(const string path) {
-  struct stat buf;
+  struct stat buf {};
   stat(path.c_str(), &buf);
   return S_ISREG(buf.st_mode);
 }
 
 bool FilesystemHelper::isDir(const string path) {
-  struct stat buf;
+  struct stat buf {};
   stat(path.c_str(), &buf);
   return S_ISDIR(buf.st_mode);
 }
@@ -82,7 +87,7 @@ const string FilesystemHelper::getTmpPath() const {
   return _tmp;
 }
 
-FilesystemHelper FilesystemHelper::createForModule(const string base, ModuleId id) {
+shared_ptr<const FilesystemHelper> FilesystemHelper::createForModule(const string base, ModuleId id) {
   if (!setupDir(base)) {
     ErrorHandler::abortCompilation(SETUP_ERROR + base);
   }
@@ -91,7 +96,7 @@ FilesystemHelper FilesystemHelper::createForModule(const string base, ModuleId i
     ErrorHandler::abortCompilation(SETUP_ERROR + modules);
   }
   auto concrete_module = modules + id;
-  return FilesystemHelper(concrete_module);
+  return make_shared<FilesystemHelper>(concrete_module);
 }
 
 }  // namespace art

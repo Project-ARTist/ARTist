@@ -45,7 +45,7 @@ unique_ptr<Filter> TraceModule::getMethodFilter() const {
   return unique_ptr<Filter>(new MethodNameBlacklist(blackListDefinition));
 }
 
-TraceModule::TraceModule(const FilesystemHelper fs) : Module(fs) {}
+TraceModule::TraceModule(shared_ptr<const FilesystemHelper> fs) : Module(fs) {}
 
 
 

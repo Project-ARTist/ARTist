@@ -31,7 +31,7 @@ class TraceModule : public Module {
     shared_ptr<const CodeLib> createCodeLib() const OVERRIDE;
 
  public:
-  explicit TraceModule(const FilesystemHelper fs);
+  explicit TraceModule(shared_ptr<const FilesystemHelper> fs);
   unique_ptr<Filter> getMethodFilter() const OVERRIDE;
 };
 

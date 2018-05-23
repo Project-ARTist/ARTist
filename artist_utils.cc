@@ -312,7 +312,7 @@ HInstruction* ArtUtils::InjectMethodCall(HInstruction* instruction_cursor,
     instructionBlock->InsertInstructionAfter(invokeInstruction, instruction_cursor);
   }
   VLOG(artistd) << "ArtUtils::InjectMethodCall: " << invokeInstruction;
-  VLOG(artist) << "ArtUtils::InjectMethodCall SUCCESS: " << method_signature;
+  VLOG(artistd) << "ArtUtils::InjectMethodCall SUCCESS: " << method_signature;
 
   return invokeInstruction;
 }

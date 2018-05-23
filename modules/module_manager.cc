@@ -100,7 +100,7 @@ void ModuleManager::initializeModules(vector<const DexFile*> dex_files, jobject 
       if (codelib_dexfile == nullptr) {
         auto msg = "Could not find dexfile defining codelib class " + signature
                    + " (requires codelib). Deactivating module " + id + ".";
-        VLOG(artistd) << msg;
+        VLOG(artist) << msg;
         module->setEnabled(false);
       } else {
         _dex_file_env->declareCodelib(codelib_dexfile);

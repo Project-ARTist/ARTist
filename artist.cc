@@ -77,14 +77,14 @@ void HArtist::Run() {
   const string method_signature = PrettyMethod(graph_->GetMethodIdx(), graph_->GetDexFile());
   ArtistLog::LogMethodCount(++_method_counter);
   VLOG(artistd) << std::endl;
-  VLOG(artist) << "Artist #" << _method_counter << ": " << method_signature<< " (" << dexFileName << ")";
+  VLOG(artistd) << "Artist #" << _method_counter << ": " << method_signature<< " (" << dexFileName << ")";
 
   Setup();
   RunPass();
 }
 
 void HArtist::Setup() {
-  VLOG(artist) << "HArtist::Setup()" << std::endl;
+  VLOG(artistd) << "HArtist::Setup()" << std::endl;
 
   SetupPass();
 

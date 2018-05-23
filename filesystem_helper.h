@@ -26,6 +26,7 @@
 #include "artist_typedefs.h"
 
 using std::string;
+using std::shared_ptr;
 
 namespace art {
 
@@ -42,7 +43,7 @@ class FilesystemHelper {
   const string getFilesPath() const;
   const string getTmpPath() const;
 
-  static FilesystemHelper createForModule(const string base, ModuleId id);
+  static shared_ptr<const FilesystemHelper> createForModule(const string base, ModuleId id);
 
 
  private:
