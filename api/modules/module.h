@@ -83,7 +83,8 @@ class Module {
 };
 
   // the types of the class factories
-  typedef shared_ptr<Module> create_t();
+  typedef shared_ptr<Module> create_t(shared_ptr<const FilesystemHelper> fshelper);
+  typedef ModuleId get_id_t();
 
 }  // namespace art
 
