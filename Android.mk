@@ -45,10 +45,4 @@ LIBART_COMPILER_SRC_FILES += \
     optimizing/artist/api/modules/module.cc \
     optimizing/artist/api/modules/module_manager.cc \
     optimizing/artist/api/io/verbose_printer.cc \
-    optimizing/artist/api/io/filesystem_helper.cc \
-    optimizing/artist/internal/modules/logtimization/logtimization_artist.cc \
-    optimizing/artist/internal/modules/logtimization/logtimization_module.cc \
-    optimizing/artist/internal/modules/trace/trace_artist.cc \
-    optimizing/artist/internal/modules/trace/trace_module.cc \
-    optimizing/artist/internal/modules/trace/trace_codelib.cc \
-
+    optimizing/artist/api/io/filesystem_helper.cc
