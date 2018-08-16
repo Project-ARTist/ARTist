@@ -17,6 +17,7 @@
  *
  * @author "Oliver Schranz <oliver.schranz@cispa.saarland>"
  * @author "Sebastian Weisgerber <weisgerber@cispa.saarland>"
+ * @author "Alexander Fink <alexander.fink@cispa.saarland>"
  *
  */
 
@@ -123,16 +124,14 @@ MemberOffset CodeLibEnvironment::getInstanceFieldOffset() {
 
 /**
  * Provides the index to the codelib's vtable for a given method signature.
- * The index is initialized lazily a single time so that consecutive calls will function as a pure getter.
  *
  * @return vtable index for the given signature.
  */
 MethodVtableIdx CodeLibEnvironment::getMethodVtableIdx(const MethodSignature& signature) {
-  // lazy init: executed only by the first thread (others are blocked) and ignored for consecutive calls.
-  call_once(vtable_flag, [this, signature]() {this->_method_vtable_idx[signature] = this->findMethodVtableIdx(signature);});
-
-  // after the initial setup, this function simply returns the already computed index
-  return _method_vtable_idx[signature];
+  if (methodVtableIdx.find(signature) == methodVtableIdx.end()) {
+    methodVtableIdx[signature] = this->findMethodVtableIdx(signature);
+  }
+  return methodVtableIdx[signature];
 }
 
 /**
