@@ -17,6 +17,7 @@
  *
  * @author "Oliver Schranz <oliver.schranz@cispa.saarland>"
  * @author "Sebastian Weisgerber <weisgerber@cispa.saarland>"
+ * @author "Alexander Fink <alexander.fink@cispa.saarland>"
  *
  */
 
@@ -77,13 +78,14 @@ class CodeLibEnvironment {
   Handle<mirror::ClassLoader> _class_loader;
   ClassLinker* _class_linker;
 
+
+  map<const MethodSignature, MethodVtableIdx> methodVtableIdx;
+
   // lazily initialized
   MemberOffset _instance_offset;
-  map<MethodSignature, MethodVtableIdx> _method_vtable_idx;
 
   // lock guard flags for lazily initialized values
   once_flag offset_flag;
-  once_flag vtable_flag;
 };
 
 }  // namespace art
