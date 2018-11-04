@@ -62,6 +62,24 @@ HArtist::HArtist(const MethodInfo& method_info,
     , _method_info(method_info) {
 }
 
+void fixMaximumNumberOfOutVRegs(art::HGraph *graph) {
+    uint16_t maxnum = graph->GetMaximumNumberOfOutVRegs();
+    for (auto block : graph->GetBlocks()) {
+        if (block == nullptr) {
+            continue;
+        }
+        auto instr = block->GetFirstInstruction();
+        while (instr != nullptr) {
+            if (instr->IsInvoke()) {
+                auto args = static_cast<uint16_t>(instr->AsInvoke()->GetNumberOfArguments());
+                maxnum = args > maxnum?args:maxnum;
+            }
+            instr = instr->GetNext();
+        }
+    }
+    graph->SetMaximumNumberOfOutVRegs(maxnum);
+}
+
 void HArtist::Run() {
   CHECK(graph_ != nullptr);
   VLOG(artistd) << "HArtist::Run()";
@@ -80,6 +98,7 @@ void HArtist::Run() {
 
   Setup();
   RunPass();
+  fixMaximumNumberOfOutVRegs(graph_);
 }
 
 void HArtist::Setup() {
