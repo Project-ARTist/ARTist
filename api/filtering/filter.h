@@ -28,7 +28,7 @@ namespace art {
 
 class Filter {
  public:
-  virtual bool accept(const MethodInfo& info) = 0;
+  virtual bool accept(const ArtistMethodInfo& info) = 0;
 
   virtual ~Filter() {}
 };

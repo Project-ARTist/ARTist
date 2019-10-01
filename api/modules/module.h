@@ -44,7 +44,7 @@ class Module {
    * @param method_info the method graph and auxiliary information
    * @return ARTist pass
    */
-  virtual HArtist* createPass(const MethodInfo& method_info) const = 0;
+  virtual HArtist* createPass(const ArtistMethodInfo& method_info) const = 0;
 
   /**
    * Create an instance of the accompanying codelib, if any.

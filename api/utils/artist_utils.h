@@ -53,7 +53,9 @@ namespace art {
 
     static bool FindMethodIdx(const DexFile* dex_file, const string& searched_method_name, MethodIdx* result);
 
-    static bool FindTypeIdxFromName(const DexFile* dex_file, const string & searched_type_name, TypeIdx* result);
+    static TypeIdx FindTypeIdxFromName(const HGraph* graph, const string & searched_type_name);
+
+    static TypeIdx FindTypeIdxFromName(const DexFile& dex_file, const string & searched_type_name);
 
     static bool FindFieldIdxFromName(const DexFile* dex_file, const string & searched_field_type, FieldIdx* result);
 

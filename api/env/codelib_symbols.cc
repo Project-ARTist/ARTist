@@ -32,12 +32,8 @@ CodelibSymbols::CodelibSymbols(
     ATTRIBUTE_UNUSED
 #endif
 ) : _dex_file(dex_file) {
-  // init type index
-  auto codelib_class = codelib->getCodeClass();
-  if (!ArtUtils::FindTypeIdxFromName(dex_file, codelib_class, &_type_idx)) {
-    auto msg("Could not find type " + codelib_class);
-    ErrorHandler::abortCompilation(msg);
-  }
+    // init type index
+    _type_idx = ArtUtils::FindTypeIdxFromName(*dex_file, codelib->getCodeClass());
 
 #ifndef BUILD_OREO
   ClassLinker* class_linker = Runtime::Current()->GetClassLinker();

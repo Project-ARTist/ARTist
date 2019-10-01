@@ -38,7 +38,7 @@ namespace art {
  */
 class HInjectionArtist : public HArtist {
  public:
-  explicit HInjectionArtist(const MethodInfo& method_info,
+  explicit HInjectionArtist(const ArtistMethodInfo& method_info,
 #ifdef BUILD_MARSHMALLOW
     bool is_in_ssa_form = true,
 #endif

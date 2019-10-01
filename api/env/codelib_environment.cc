@@ -64,28 +64,19 @@ CodeLibEnvironment::CodeLibEnvironment(shared_ptr<const DexfileEnvironment> dexf
 
   Locks::mutator_lock_->SharedUnlock(Thread::Current());
 
-  // init class def index
-  auto codelib_class = codelib->getCodeClass();
-  if (!ArtUtils::FindClassDefIdxFromName(codelib_dex_file, codelib_class, &_cld_idx)) {
-    auto msg("Could not find ClassDefId for class: " + codelib_class);
-    ErrorHandler::abortCompilation(msg);
-  }
+    // init class def index
+    _cld_idx = ArtUtils::FindClassDefIdxFromName(codelib_dex_file, codelib->getCodeClass());
 
-  // init type index
-//  _type_idx = ArtUtils::FindTypeIdxFromName(*codelib_dex_file, _codelib->getCodeClass());
+    // init type index
+    _type_idx = ArtUtils::FindTypeIdxFromName(*codelib_dex_file, _codelib->getCodeClass());
 
-  if (!ArtUtils::FindTypeIdxFromName(codelib_dex_file, codelib_class, &_type_idx)) {
-    auto msg("Could not find type " + codelib_class);
-    ErrorHandler::abortCompilation(msg);
-  }
-
-  // init singleton instance field index
+    // init singleton instance field index
 //  _instance_idx = ArtUtils::FindFieldIdxFromName(*codelib_dex_file, _codelib->getInstanceField());
-  auto instance_field = _codelib->getInstanceField();
-  if (!ArtUtils::FindFieldIdxFromName(codelib_dex_file, instance_field, &_instance_idx)) {
-    auto msg("Could not find type " + instance_field);
-    ErrorHandler::abortCompilation(msg);
-  }
+    auto instance_field = _codelib->getInstanceField();
+    if (!ArtUtils::FindFieldIdxFromName(codelib_dex_file, instance_field, &_instance_idx)) {
+        auto msg("Could not find type " + instance_field);
+        ErrorHandler::abortCompilation(msg);
+    }
 }
 
 const DexFile* CodeLibEnvironment::getDexFile() const {

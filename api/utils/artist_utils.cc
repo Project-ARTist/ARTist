@@ -130,7 +130,7 @@ bool ArtUtils::FindClassDefIdxFromName(const DexFile* dex_file, const  string & 
   VLOG(artistd) << "Check whether " << dex_file->GetLocation() << " defines " << searched_signature;
   for (uint16_t idx = 0; idx < dex_file->NumClassDefs(); idx++) {
     auto class_def = &dex_file->GetClassDef(idx);
-    ClassDefIdx class_idx = class_def->class_idx_;
+    dex::TypeIndex class_idx = class_def->class_idx_;
     auto candidate_signature = dex_file->StringByTypeIdx(class_idx);
     VLOG(artistd) << "Comparing candidate " << candidate_signature << " to searched " << searched_signature;
     // search for perfect match
@@ -352,7 +352,7 @@ HInstruction* ArtUtils::InjectMethodCall(HInstruction* instruction_cursor,
   Locks::mutator_lock_->SharedLock(Thread::Current());
   ClassLinker* class_linker = Runtime::Current()->GetClassLinker();
   ArtMethod* resolved_method =
-      class_linker->ResolveMethod<ClassLinker::ResolveMode::kNoICCECheckForCache>(
+      class_linker->ResolveMethod<ClassLinker::ResolveMode::kNoChecks>(
           Thread::Current(),
           symbols->getMethodIdx(method_signature),
           graph->GetArtMethod(),

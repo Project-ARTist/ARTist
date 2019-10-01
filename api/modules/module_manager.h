@@ -73,6 +73,7 @@ class ModuleManager {
 
     void initializeModules(vector<const DexFile*> dex_files, jobject jclass_loader);
     bool initialized() const;
+    bool definesClass(const DexFile* dexfile, const MethodSignature searched_signature) const;
 
  private:
     atomic_bool _init_flag;
